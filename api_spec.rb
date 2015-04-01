@@ -29,9 +29,32 @@ describe "OPTIONS" do
 
 end
 
-describe "Step 1" do
+describe "Requests" do
 
-  # describe "DELETE non-existing key" do
-  # end
+  describe "PUT a JSON object" do
+    before do
+      @res = RestClient.put BASE_URL+"fuck-the-police.jpg",
+             '{"foo": "bar"}',
+             { content_type: "application/json" }
+    end
+
+    it "returns a success status" do
+      @res.code.must_be :>=, 200
+      @res.code.must_be :<, 300
+    end
+  end
+
+  describe "PUT a JPG image" do
+    before do
+      @res = RestClient.put BASE_URL+"fuck-the-police.jpg",
+             File.open("fixtures/files/fuck-the-police.jpg"),
+             { content_type: "image/jpg" }
+    end
+
+    it "returns a success status" do
+      @res.code.must_be :>=, 200
+      @res.code.must_be :<, 300
+    end
+  end
 
 end

@@ -10,9 +10,14 @@ require "minitest/reporters"
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
 CONFIG = {
-  host: 'https://storage.5apps.com',
+  host: 'http://storage.5apps.dev',
   user: 'remotestorage-test',
   category: 'api-test'
 }
+# CONFIG = {
+#   host: 'https://storage.5apps.com',
+#   user: 'remotestorage-test',
+#   category: 'api-test'
+# }
 
-BASE_URL = "#{CONFIG[:host]}/#{CONFIG[:user]}/#{CONFIG[:category]}"
+BASE_URL = "#{CONFIG[:host]}/#{CONFIG[:user]}/#{CONFIG[:category]}/"
