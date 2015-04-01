@@ -4,7 +4,6 @@ Bundler.require
 
 require 'minitest/spec'
 require 'minitest/autorun'
-# require 'purdytest'
 
 require "minitest/reporters"
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
