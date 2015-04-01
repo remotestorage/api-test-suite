@@ -33,7 +33,7 @@ describe "Requests" do
 
   describe "PUT a JSON object" do
     before do
-      @res = RestClient.put BASE_URL+"fuck-the-police.jpg",
+      @res = RestClient.put BASE_URL+"test-object-simple.json",
              '{"foo": "bar"}',
              { content_type: "application/json" }
     end
@@ -42,13 +42,17 @@ describe "Requests" do
       @res.code.must_be :>=, 200
       @res.code.must_be :<, 300
     end
+
+    it "returns an etag" do
+      @res.headers[:etag].must_be_kind_of String
+    end
   end
 
   describe "PUT a JPG image" do
     before do
       @res = RestClient.put BASE_URL+"fuck-the-police.jpg",
              File.open("fixtures/files/fuck-the-police.jpg"),
-             { content_type: "image/jpg" }
+             { content_type: "image/jpeg" }
     end
 
     it "returns a success status" do
@@ -56,5 +60,7 @@ describe "Requests" do
       @res.code.must_be :<, 300
     end
   end
+
+  # TODO collision detection
 
 end
