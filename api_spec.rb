@@ -85,6 +85,15 @@ describe "Requests" do
     end
   end
 
+  describe "GET a non-existing object" do
+
+    it "returns a 404" do
+      RestClient.get(BASE_URL+"four-oh-four.html") do |response|
+        response.code.must_equal 404
+      end
+    end
+  end
+
   describe "DELETE an object" do
     it "works" do
       ["test-object-simple.json", "fuck-the-police.jpg"].each do |key|
