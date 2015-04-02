@@ -212,11 +212,11 @@ describe "Requests" do
 
   describe "DELETE objects" do
     it "works" do
-      ["test-object-simple.json", "test-object-simple2.json", "fuck-the-police.jpg"].each do |key|
+      ["test-object-simple.json", "fuck-the-police.jpg"].each do |key|
         res = RestClient.delete BASE_URL+key
 
         res.code.must_equal 200
-        RestClient.get(BASE_URL+key) do |response|
+        RestClient.head(BASE_URL+key) do |response|
           response.code.must_equal 404
         end
       end
@@ -228,6 +228,49 @@ describe "Requests" do
       RestClient.delete(BASE_URL+"four-oh-four.html") do |response|
         response.code.must_equal 404
       end
+    end
+  end
+
+  describe "DELETE with non-matching If-Match header" do
+    before do
+      RestClient.delete(BASE_URL+"test-object-simple2.json", {if_match: "invalid"}) do |response|
+        @res = response
+      end
+    end
+
+    it "does not delete the object" do
+      @res.code.must_equal 412
+
+      RestClient.head(BASE_URL+"test-object-simple2.json") do |response|
+        response.code.must_equal 200
+      end
+    end
+  end
+
+  describe "DELETE with matching If-Match header" do
+    before do
+      etag = RestClient.head(BASE_URL+"test-object-simple2.json").headers[:etag]
+      @res = RestClient.delete(BASE_URL+"test-object-simple2.json", {if_match: etag})
+    end
+
+    it "deletes the object" do
+      @res.code.must_equal 200
+
+      RestClient.head(BASE_URL+"test-object-simple2.json") do |response|
+        response.code.must_equal 404
+      end
+    end
+  end
+
+  describe "DELETE with If-Match header to non-existing object" do
+    before do
+      RestClient.delete(BASE_URL+"four-oh-four.json", {if_match: "match me"}) do |response|
+        @res = response
+      end
+    end
+
+    it "returns 412" do
+      @res.code.must_equal 412
     end
   end
 
