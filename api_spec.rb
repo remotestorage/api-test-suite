@@ -38,12 +38,8 @@ describe "Requests" do
              { content_type: "application/json" }
     end
 
-    it "returns a success status" do
-      @res.code.must_be :>=, 200
-      @res.code.must_be :<, 300
-    end
-
-    it "returns an etag" do
+    it "works" do
+      [200, 201].must_include @res.code
       @res.headers[:etag].must_be_etag
     end
   end
@@ -55,9 +51,9 @@ describe "Requests" do
              { content_type: "image/jpeg" }
     end
 
-    it "returns a success status" do
-      @res.code.must_be :>=, 200
-      @res.code.must_be :<, 300
+    it "works" do
+      [200, 201].must_include @res.code
+      @res.headers[:etag].must_be_etag
     end
   end
 
