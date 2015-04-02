@@ -56,6 +56,22 @@ describe "Requests" do
       @res.headers[:content_length].must_equal "14"
       @res.body.must_equal '{"foo": "bar"}'
     end
+
+    it "returns 304 when ETag matches" do
+      RestClient.get BASE_URL+"test-object-simple.json",
+                     { if_none_match: @res.headers[:etag] } do |response|
+        response.code.must_equal 304
+        response.body.must_be_empty
+      end
+    end
+
+    it "returns 304 when one of multiple ETags matches" do
+      RestClient.get BASE_URL+"test-object-simple.json",
+                     { if_none_match: "r2d2c3po, #{@res.headers[:etag]}" } do |response|
+        response.code.must_equal 304
+        response.body.must_be_empty
+      end
+    end
   end
 
   describe "PUT a JPG image" do
