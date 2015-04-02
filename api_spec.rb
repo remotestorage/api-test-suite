@@ -75,6 +75,20 @@ describe "Requests" do
     end
   end
 
+  describe "PUT with If-Match header to non-existing object" do
+    before do
+      RestClient.put BASE_URL+"four-oh-four.json",
+                     '{"should": "not-happen"}',
+                     { content_type: "application/json", if_match: "doesnotmatter" } do |response|
+         @res = response
+       end
+    end
+
+    it "returns 412" do
+      @res.code.must_equal 412
+    end
+  end
+
   describe "GET a JSON object" do
     before do
       @res = RestClient.get BASE_URL+"test-object-simple.json"
