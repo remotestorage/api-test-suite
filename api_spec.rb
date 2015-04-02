@@ -74,6 +74,20 @@ describe "Requests" do
     end
   end
 
+  describe "HEAD a JSON object" do
+    before do
+      @res = RestClient.head BASE_URL+"test-object-simple.json"
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+      @res.headers[:content_length].must_equal "14"
+      @res.body.must_be_empty
+    end
+  end
+
   describe "PUT a JPG image" do
     before do
       @res = RestClient.put BASE_URL+"fuck-the-police.jpg",
@@ -109,7 +123,7 @@ describe "Requests" do
     end
   end
 
-  describe "DELETE an object" do
+  describe "DELETE objects" do
     it "works" do
       ["test-object-simple.json", "fuck-the-police.jpg"].each do |key|
         res = RestClient.delete BASE_URL+key
