@@ -44,7 +44,7 @@ describe "Requests" do
     end
 
     it "returns an etag" do
-      @res.headers[:etag].must_be_kind_of String
+      @res.headers[:etag].must_be_etag
     end
   end
 

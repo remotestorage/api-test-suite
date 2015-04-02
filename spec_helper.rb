@@ -15,6 +15,14 @@ class Minitest::Spec
   end
 end
 
+module MiniTest::Assertions
+  def assert_is_etag(string)
+    assert string.match(/"[0-9a-z]*"/i), "Expected #{string} to be a valid ETag"
+  end
+end
+
+String.infect_an_assertion :assert_is_etag, :must_be_etag, :only_one_argument
+
 CONFIG = {
   host: 'http://storage.5apps.dev',
   user: 'remotestorage-test',
