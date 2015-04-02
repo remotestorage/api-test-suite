@@ -44,11 +44,25 @@ describe "Requests" do
     end
   end
 
+  describe "GET a JSON object" do
+    before do
+      @res = RestClient.get BASE_URL+"test-object-simple.json"
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+      @res.headers[:content_length].must_equal "14"
+      @res.body.must_equal '{"foo": "bar"}'
+    end
+  end
+
   describe "PUT a JPG image" do
     before do
       @res = RestClient.put BASE_URL+"fuck-the-police.jpg",
              File.open("fixtures/files/fuck-the-police.jpg"),
-             { content_type: "image/jpeg" }
+             { content_type: "image/jpeg; charset=binary" }
     end
 
     it "works" do
@@ -57,6 +71,20 @@ describe "Requests" do
     end
   end
 
-  # TODO collision detection
+  describe "GET a JPG image" do
+    before do
+      @res = RestClient::Request.execute(method: :get, url: BASE_URL+"fuck-the-police.jpg", raw_response: true)
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "image/jpeg; charset=binary"
+      @res.headers[:content_length].must_equal "28990"
+      @res.to_s.must_equal File.read("fixtures/files/fuck-the-police.jpg")
+    end
+  end
+
+  # TODO collision detection on PUT requests
 
 end
