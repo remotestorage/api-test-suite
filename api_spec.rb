@@ -62,7 +62,6 @@ describe "Requests" do
 
   describe "PUT with non-matching If-Match header" do
     before do
-      @etag = RestClient.head(BASE_URL+"test-object-simple.json").headers[:etag]
       RestClient.put BASE_URL+"test-object-simple.json",
                      '{"should": "not-happen"}',
                      { content_type: "application/json", if_match: "invalid" } do |response|
@@ -86,6 +85,35 @@ describe "Requests" do
 
     it "returns 412" do
       @res.code.must_equal 412
+    end
+  end
+
+  describe "PUT with If-None-Match header to existing object" do
+    before do
+      RestClient.put BASE_URL+"test-object-simple.json",
+                     '{"should": "not-happen"}',
+                     { content_type: "application/json", if_none_match: "*" } do |response|
+         @res = response
+       end
+    end
+
+    it "returns 412" do
+      @res.code.must_equal 412
+    end
+  end
+
+  describe "PUT with If-None-Match header to non-existing object" do
+    before do
+      RestClient.put BASE_URL+"test-object-simple2.json",
+                     '{"should": "happen"}',
+                     { content_type: "application/json", if_none_match: "*" } do |response|
+         @res = response
+       end
+    end
+
+    it "works" do
+      [200, 201].must_include @res.code
+      @res.headers[:etag].must_be_etag
     end
   end
 
@@ -184,7 +212,7 @@ describe "Requests" do
 
   describe "DELETE objects" do
     it "works" do
-      ["test-object-simple.json", "fuck-the-police.jpg"].each do |key|
+      ["test-object-simple.json", "test-object-simple2.json", "fuck-the-police.jpg"].each do |key|
         res = RestClient.delete BASE_URL+key
 
         res.code.must_equal 200
