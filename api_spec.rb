@@ -86,7 +86,6 @@ describe "Requests" do
   end
 
   describe "GET a non-existing object" do
-
     it "returns a 404" do
       RestClient.get(BASE_URL+"four-oh-four.html") do |response|
         response.code.must_equal 404
@@ -103,6 +102,14 @@ describe "Requests" do
         RestClient.get(BASE_URL+key) do |response|
           response.code.must_equal 404
         end
+      end
+    end
+  end
+
+  describe "DELETE a non-existing object" do
+    it "returns a 404" do
+      RestClient.delete(BASE_URL+"four-oh-four.html") do |response|
+        response.code.must_equal 404
       end
     end
   end
