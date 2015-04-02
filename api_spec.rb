@@ -34,13 +34,44 @@ describe "Requests" do
   describe "PUT a JSON object" do
     before do
       @res = RestClient.put BASE_URL+"test-object-simple.json",
-             '{"foo": "bar"}',
+             '{"new": "object"}',
              { content_type: "application/json" }
     end
 
     it "works" do
       [200, 201].must_include @res.code
       @res.headers[:etag].must_be_etag
+    end
+  end
+
+  describe "PUT with matching If-Match header" do
+    before do
+      @etag = RestClient.head(BASE_URL+"test-object-simple.json").headers[:etag]
+      RestClient.put BASE_URL+"test-object-simple.json",
+                     '{"foo": "bar"}',
+                     { content_type: "application/json", if_match: @etag } do |response|
+         @res = response
+       end
+    end
+
+    it "updates the object" do
+      [200, 201].must_include @res.code
+      @res.headers[:etag].must_be_etag
+    end
+  end
+
+  describe "PUT with non-matching If-Match header" do
+    before do
+      @etag = RestClient.head(BASE_URL+"test-object-simple.json").headers[:etag]
+      RestClient.put BASE_URL+"test-object-simple.json",
+                     '{"should": "not-happen"}',
+                     { content_type: "application/json", if_match: "invalid" } do |response|
+         @res = response
+       end
+    end
+
+    it "returns 412" do
+      @res.code.must_equal 412
     end
   end
 
