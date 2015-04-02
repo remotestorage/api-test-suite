@@ -85,6 +85,19 @@ describe "Requests" do
     end
   end
 
+  describe "DELETE an object" do
+    it "works" do
+      ["test-object-simple.json", "fuck-the-police.jpg"].each do |key|
+        res = RestClient.delete BASE_URL+key
+
+        res.code.must_equal 200
+        RestClient.get(BASE_URL+key) do |response|
+          response.code.must_equal 404
+        end
+      end
+    end
+  end
+
   # TODO collision detection on PUT requests
 
 end
