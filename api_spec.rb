@@ -252,6 +252,10 @@ describe "Requests" do
     end
   end
 
+  describe "GET empty directory listing" do
+
+  end
+
   describe "DELETE objects" do
     it "works" do
       ["test-object-simple.json", "fuck-the-police.jpg",
