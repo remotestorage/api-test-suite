@@ -140,7 +140,7 @@ describe "Requests" do
       end
     end
 
-    it "returns 304 when ETag matches" do
+    it "returns 304 with empty body when ETag matches" do
       @res.code.must_equal 304
       @res.body.must_be_empty
     end
@@ -207,6 +207,29 @@ describe "Requests" do
       RestClient.get(BASE_URL+"four-oh-four.html") do |response|
         response.code.must_equal 404
       end
+    end
+  end
+
+  describe "GET directory listing" do
+    before do
+      @res = RestClient.get BASE_URL
+      @listing = JSON.parse @res.body
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+
+      @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
+      @listing["items"].each_pair do |key, value|
+        key.must_be_kind_of String
+        value["Content-Length"].must_be_kind_of Integer
+        value["Content-Type"].must_be_kind_of String
+        value["ETag"].must_be_kind_of String
+      end
+    end
+
+    it "contains the correct items" do
+      @listing["items"].length.must_equal 3
     end
   end
 
