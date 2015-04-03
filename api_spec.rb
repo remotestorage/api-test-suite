@@ -235,8 +235,10 @@ describe "Requests" do
       @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
       @listing["items"].each_pair do |key, value|
         key.must_be_kind_of String
-        value["ETag"].must_be_etag
-        unless key[-1] == "/"
+        value["ETag"].must_be_kind_of String
+        if key[-1] == "/"
+          value.keys.must_equal ["ETag"]
+        else
           value["Content-Length"].must_be_kind_of Integer
           value["Content-Type"].must_be_kind_of String
         end
@@ -244,7 +246,7 @@ describe "Requests" do
     end
 
     it "contains the correct items" do
-      puts @listing["items"].inspect
+      # puts @listing["items"].inspect
       @listing["items"].length.must_equal 4
       # TODO check for actual items
     end
@@ -252,7 +254,8 @@ describe "Requests" do
 
   describe "DELETE objects" do
     it "works" do
-      ["test-object-simple.json", "fuck-the-police.jpg"].each do |key|
+      ["test-object-simple.json", "fuck-the-police.jpg",
+       "some-subdir/nested-folder-object.json"].each do |key|
         res = RestClient.delete BASE_URL+key
 
         res.code.must_equal 200
