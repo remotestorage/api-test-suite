@@ -44,6 +44,19 @@ describe "Requests" do
     end
   end
 
+  describe "PUT with nested folder" do
+    before do
+      @res = RestClient.put BASE_URL+"some-subdir/nested-folder-object.json",
+             '{"foo": "baz"}',
+             { content_type: "application/json" }
+    end
+
+    it "works" do
+      [200, 201].must_include @res.code
+      @res.headers[:etag].must_be_etag
+    end
+  end
+
   describe "PUT with matching If-Match header" do
     before do
       @etag = RestClient.head(BASE_URL+"test-object-simple.json").headers[:etag]
@@ -222,14 +235,18 @@ describe "Requests" do
       @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
       @listing["items"].each_pair do |key, value|
         key.must_be_kind_of String
-        value["Content-Length"].must_be_kind_of Integer
-        value["Content-Type"].must_be_kind_of String
-        value["ETag"].must_be_kind_of String
+        value["ETag"].must_be_etag
+        unless key[-1] == "/"
+          value["Content-Length"].must_be_kind_of Integer
+          value["Content-Type"].must_be_kind_of String
+        end
       end
     end
 
     it "contains the correct items" do
-      @listing["items"].length.must_equal 3
+      puts @listing["items"].inspect
+      @listing["items"].length.must_equal 4
+      # TODO check for actual items
     end
   end
 
