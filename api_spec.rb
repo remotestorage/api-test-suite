@@ -290,9 +290,11 @@ describe "Requests" do
     end
 
     it "contains the correct items" do
-      # puts @listing["items"].inspect
       @listing["items"].length.must_equal 5
-      # TODO check for actual items
+      ["fuck-the-police.jpg", "my-list", "some-subdir/",
+       "test-object-simple.json", "test-object-simple2.json"].each do |key|
+        @listing["items"].keys.must_include key
+      end
     end
   end
 
