@@ -246,6 +246,8 @@ describe "Requests" do
 
     it "works" do
       @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
 
       @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
       @listing["items"].each_pair do |key, value|
