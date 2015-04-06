@@ -405,6 +405,4 @@ describe "Requests" do
     end
   end
 
-  # TODO collision detection on PUT requests
-
 end
