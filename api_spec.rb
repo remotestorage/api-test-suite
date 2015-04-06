@@ -268,7 +268,17 @@ describe "Requests" do
   end
 
   describe "GET empty directory listing" do
+    before do
+      @res = do_get_request("does-not-exist/")
+      @listing = JSON.parse @res.body
+    end
 
+    it "works" do
+      @res.code.must_equal 200
+
+      @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
+      @listing["items"].must_equal({})
+    end
   end
 
   describe "DELETE objects" do
