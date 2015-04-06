@@ -40,6 +40,7 @@ describe "Requests" do
 
     it "works" do
       [200, 201].must_include @res.code
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
   end
@@ -53,15 +54,35 @@ describe "Requests" do
 
     it "works" do
       [200, 201].must_include @res.code
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
+    end
+  end
+
+  describe "PUT with same name as existing directory" do
+    it "returns a 409" do
+      do_put_request("some-subdir", '', {content_type: "text/plain"}) do |res|
+        res.code.must_equal 409
+      end
+    end
+  end
+
+  describe "PUT with same directory name as existing object" do
+    before do
+      do_put_request("my-list", '', {content_type: "text/plain"})
+    end
+
+    it "returns a 409" do
+      do_put_request("my-list/item", '', {content_type: "text/plain"}) do |res|
+        res.code.must_equal 409
+      end
     end
   end
 
   describe "PUT with matching If-Match header" do
     before do
       @etag = do_head_request("test-object-simple.json").headers[:etag]
-      do_put_request("test-object-simple.json",
-                     '{"foo": "bar"}',
+      do_put_request("test-object-simple.json", '{"foo": "bar"}',
                      { content_type: "application/json", if_match: @etag }) do |response|
          @res = response
        end
@@ -69,6 +90,7 @@ describe "Requests" do
 
     it "updates the object" do
       [200, 201].must_include @res.code
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
   end
@@ -129,6 +151,7 @@ describe "Requests" do
 
     it "works" do
       [200, 201].must_include @res.code
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
   end
@@ -140,6 +163,7 @@ describe "Requests" do
 
     it "works" do
       @res.code.must_equal 200
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
       @res.headers[:content_length].must_equal "14"
@@ -183,6 +207,7 @@ describe "Requests" do
 
     it "works" do
       @res.code.must_equal 200
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
       @res.headers[:content_length].must_equal "14"
@@ -199,6 +224,7 @@ describe "Requests" do
 
     it "works" do
       [200, 201].must_include @res.code
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
   end
@@ -210,6 +236,7 @@ describe "Requests" do
 
     it "works" do
       @res.code.must_equal 200
+      @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "image/jpeg; charset=binary"
       @res.headers[:content_length].must_equal "28990"
@@ -264,7 +291,7 @@ describe "Requests" do
 
     it "contains the correct items" do
       # puts @listing["items"].inspect
-      @listing["items"].length.must_equal 4
+      @listing["items"].length.must_equal 5
       # TODO check for actual items
     end
   end
@@ -313,8 +340,8 @@ describe "Requests" do
 
   describe "DELETE objects" do
     it "works" do
-      ["test-object-simple.json", "fuck-the-police.jpg",
-       "some-subdir/nested-folder-object.json"].each do |key|
+      [ "test-object-simple.json", "fuck-the-police.jpg",
+        "some-subdir/nested-folder-object.json", "my-list" ].each do |key|
         res = do_delete_request(key)
 
         res.code.must_equal 200
