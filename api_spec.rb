@@ -225,6 +225,19 @@ describe "Requests" do
     end
   end
 
+  describe "HEAD directory listing" do
+    before do
+      @res = do_head_request("")
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+      @res.body.must_equal ""
+    end
+  end
+
   describe "GET directory listing" do
     before do
       @res = do_get_request("")
