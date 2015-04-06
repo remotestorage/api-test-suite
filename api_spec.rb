@@ -267,6 +267,34 @@ describe "Requests" do
     end
   end
 
+  describe "GET directory listing with If-None-Match header" do
+    before do
+      @etag = do_head_request("").headers[:etag]
+      do_get_request("", { if_none_match: @etag }) do |response|
+        @res = response
+      end
+    end
+
+    it "returns 304 with empty body when ETag matches" do
+      @res.code.must_equal 304
+      @res.body.must_be_empty
+    end
+  end
+
+  describe "GET directory listing with multiple ETags in If-None-Match header" do
+    before do
+      @etag = do_head_request("").headers[:etag]
+      do_get_request("", { if_none_match: "r2d2c3po, #{@etag}" }) do |response|
+        @res = response
+      end
+    end
+
+    it "returns 304 when one ETag matches" do
+      @res.code.must_equal 304
+      @res.body.must_be_empty
+    end
+  end
+
   describe "GET empty directory listing" do
     before do
       @res = do_get_request("does-not-exist/")
