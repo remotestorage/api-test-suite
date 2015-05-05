@@ -217,8 +217,8 @@ describe "Requests" do
 
   describe "PUT a JPG image" do
     before do
-      @res = do_put_request("fuck-the-police.jpg",
-             File.open("fixtures/files/fuck-the-police.jpg"),
+      @res = do_put_request("Capture d'écran.jpg",
+             File.open("fixtures/files/capture.jpg"),
              { content_type: "image/jpeg; charset=binary" })
     end
 
@@ -231,7 +231,7 @@ describe "Requests" do
 
   describe "GET a JPG image" do
     before do
-      @res = do_network_request("fuck-the-police.jpg", method: :get, raw_response: true)
+      @res = do_network_request("Capture d'écran.jpg", method: :get, raw_response: true)
     end
 
     it "works" do
@@ -240,7 +240,7 @@ describe "Requests" do
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "image/jpeg; charset=binary"
       @res.headers[:content_length].must_equal "28990"
-      @res.to_s.must_equal File.read("fixtures/files/fuck-the-police.jpg")
+      @res.to_s.must_equal File.read("fixtures/files/capture.jpg")
     end
   end
 
@@ -291,7 +291,7 @@ describe "Requests" do
 
     it "contains the correct items" do
       @listing["items"].length.must_equal 5
-      ["fuck-the-police.jpg", "my-list", "some-subdir/",
+      ["Capture d'écran.jpg", "my-list", "some-subdir/",
        "test-object-simple.json", "test-object-simple2.json"].each do |key|
         @listing["items"].keys.must_include key
       end
@@ -342,7 +342,7 @@ describe "Requests" do
 
   describe "DELETE objects" do
     it "works" do
-      [ "test-object-simple.json", "fuck-the-police.jpg",
+      [ "test-object-simple.json", "Capture d'écran.jpg",
         "some-subdir/nested-folder-object.json", "my-list" ].each do |key|
         res = do_delete_request(key)
 

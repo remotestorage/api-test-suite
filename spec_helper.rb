@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'bundler'
 Bundler.require
+require 'cgi'
 
 require 'minitest/spec'
 require 'minitest/autorun'
@@ -27,7 +28,7 @@ CONFIG = {
   host: 'http://storage.5apps.dev',
   user: 'remotestorage-test',
   category: 'api-test',
-  token: 'rstoken'
+  token: '43c7d197cd4ba41bb473b90d92b1aa40'
 }
 # CONFIG = {
 #   host: 'https://storage.5apps.com',
@@ -43,25 +44,29 @@ end
 
 def do_network_request(path, options, &block)
   options[:headers] = default_headers.merge(options[:headers] || {})
-  options[:url] = BASE_URL+path
+  options[:url] = "#{BASE_URL}#{escape(path)}"
 
   RestClient::Request.execute(options, &block)
 end
 
 def do_put_request(path, data, headers = {}, &block)
-  RestClient.put "#{BASE_URL}#{path}", data, default_headers.merge(headers), &block
+  RestClient.put "#{BASE_URL}#{escape(path)}", data, default_headers.merge(headers), &block
 end
 
 def do_get_request(path, headers = {}, &block)
-  RestClient.get "#{BASE_URL}#{path}", default_headers.merge(headers), &block
+  RestClient.get "#{BASE_URL}#{escape(path)}", default_headers.merge(headers), &block
 end
 
 def do_delete_request(path, headers = {}, &block)
-  RestClient.delete "#{BASE_URL}#{path}", default_headers.merge(headers), &block
+  RestClient.delete "#{BASE_URL}#{escape(path)}", default_headers.merge(headers), &block
 end
 
 def do_head_request(path, headers = {}, &block)
-  RestClient.head "#{BASE_URL}#{path}", default_headers.merge(headers), &block
+  RestClient.head "#{BASE_URL}#{escape(path)}", default_headers.merge(headers), &block
 end
 
+private
 
+def escape(url)
+  CGI::escape(url).gsub('+', '%20').gsub('%2F', '/')
+end
