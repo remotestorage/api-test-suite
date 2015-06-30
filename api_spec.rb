@@ -298,6 +298,48 @@ describe "Requests" do
     end
   end
 
+  describe "HEAD directory listing for root" do
+    before do
+      @res = do_head_request("")
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+      @res.body.must_equal ""
+    end
+  end
+
+  describe "GET directory listing for root" do
+    before do
+      @res = do_get_request("")
+      @listing = JSON.parse @res.body
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+
+      @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
+      @listing["items"].each_pair do |key, value|
+        key.must_be_kind_of String
+        value["ETag"].must_be_kind_of String
+        if key[-1] == "/"
+          value.keys.must_equal ["ETag"]
+        else
+          value["Content-Length"].must_be_kind_of Integer
+          value["Content-Type"].must_be_kind_of String
+        end
+      end
+    end
+
+    it "contains the correct items" do
+      @listing["items"].keys.must_equal ["#{CONFIG[:category]}/"]
+    end
+  end
+
   describe "GET directory listing with If-None-Match header" do
     before do
       @etag = do_head_request("#{CONFIG[:category]}/").headers[:etag]
