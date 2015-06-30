@@ -33,7 +33,7 @@ describe "Requests" do
 
   describe "PUT a JSON object" do
     before do
-      @res = do_put_request("test-object-simple.json",
+      @res = do_put_request("#{CONFIG[:category]}/test-object-simple.json",
                             '{"new": "object"}',
                             { content_type: "application/json" })
     end
@@ -47,7 +47,7 @@ describe "Requests" do
 
   describe "PUT with nested folder" do
     before do
-      @res = do_put_request("some-subdir/nested-folder-object.json",
+      @res = do_put_request("#{CONFIG[:category]}/some-subdir/nested-folder-object.json",
                             '{"foo": "baz"}',
                             { content_type: "application/json" })
     end
@@ -61,7 +61,7 @@ describe "Requests" do
 
   describe "PUT with same name as existing directory" do
     it "returns a 409" do
-      do_put_request("some-subdir", '', {content_type: "text/plain"}) do |res|
+      do_put_request("#{CONFIG[:category]}/some-subdir", '', {content_type: "text/plain"}) do |res|
         res.code.must_equal 409
       end
     end
@@ -69,11 +69,11 @@ describe "Requests" do
 
   describe "PUT with same directory name as existing object" do
     before do
-      do_put_request("my-list", '', {content_type: "text/plain"})
+      do_put_request("#{CONFIG[:category]}/my-list", '', {content_type: "text/plain"})
     end
 
     it "returns a 409" do
-      do_put_request("my-list/item", '', {content_type: "text/plain"}) do |res|
+      do_put_request("#{CONFIG[:category]}/my-list/item", '', {content_type: "text/plain"}) do |res|
         res.code.must_equal 409
       end
     end
@@ -81,8 +81,8 @@ describe "Requests" do
 
   describe "PUT with matching If-Match header" do
     before do
-      @etag = do_head_request("test-object-simple.json").headers[:etag]
-      do_put_request("test-object-simple.json", '{"foo": "bar"}',
+      @etag = do_head_request("#{CONFIG[:category]}/test-object-simple.json").headers[:etag]
+      do_put_request("#{CONFIG[:category]}/test-object-simple.json", '{"foo": "bar"}',
                      { content_type: "application/json", if_match: @etag }) do |response|
          @res = response
        end
@@ -97,7 +97,7 @@ describe "Requests" do
 
   describe "PUT with non-matching If-Match header" do
     before do
-      do_put_request("test-object-simple.json",
+      do_put_request("#{CONFIG[:category]}/test-object-simple.json",
                      '{"should": "not-happen"}',
                      { content_type: "application/json", if_match: "invalid" }) do |response|
          @res = response
@@ -111,7 +111,7 @@ describe "Requests" do
 
   describe "PUT with If-Match header to non-existing object" do
     before do
-      do_put_request("four-oh-four.json",
+      do_put_request("#{CONFIG[:category]}/four-oh-four.json",
                      '{"should": "not-happen"}',
                      { content_type: "application/json",
                        if_match: "doesnotmatter" }) do |response|
@@ -126,7 +126,7 @@ describe "Requests" do
 
   describe "PUT with If-None-Match header to existing object" do
     before do
-      do_put_request("test-object-simple.json",
+      do_put_request("#{CONFIG[:category]}/test-object-simple.json",
                      '{"should": "not-happen"}',
                      { content_type: "application/json",
                        if_none_match: "*" }) do |response|
@@ -141,7 +141,7 @@ describe "Requests" do
 
   describe "PUT with If-None-Match header to non-existing object" do
     before do
-      do_put_request("test-object-simple2.json",
+      do_put_request("#{CONFIG[:category]}/test-object-simple2.json",
                      '{"should": "happen"}',
                      { content_type: "application/json",
                        if_none_match: "*" }) do |response|
@@ -158,7 +158,7 @@ describe "Requests" do
 
   describe "GET a JSON object" do
     before do
-      @res = do_get_request("test-object-simple.json")
+      @res = do_get_request("#{CONFIG[:category]}/test-object-simple.json")
     end
 
     it "works" do
@@ -173,8 +173,8 @@ describe "Requests" do
 
   describe "GET with If-None-Match header" do
     before do
-      @etag = do_head_request("test-object-simple.json").headers[:etag]
-      do_get_request("test-object-simple.json", { if_none_match: @etag }) do |response|
+      @etag = do_head_request("#{CONFIG[:category]}/test-object-simple.json").headers[:etag]
+      do_get_request("#{CONFIG[:category]}/test-object-simple.json", { if_none_match: @etag }) do |response|
         @res = response
       end
     end
@@ -187,8 +187,8 @@ describe "Requests" do
 
   describe "GET with multiple ETags in If-None-Match header" do
     before do
-      @etag = do_head_request("test-object-simple.json").headers[:etag]
-      do_get_request("test-object-simple.json",
+      @etag = do_head_request("#{CONFIG[:category]}/test-object-simple.json").headers[:etag]
+      do_get_request("#{CONFIG[:category]}/test-object-simple.json",
                      { if_none_match: "r2d2c3po, #{@etag}" }) do |response|
         @res = response
       end
@@ -202,7 +202,7 @@ describe "Requests" do
 
   describe "HEAD a JSON object" do
     before do
-      @res = do_head_request("test-object-simple.json")
+      @res = do_head_request("#{CONFIG[:category]}/test-object-simple.json")
     end
 
     it "works" do
@@ -217,7 +217,7 @@ describe "Requests" do
 
   describe "PUT a JPG image" do
     before do
-      @res = do_put_request("Capture d'écran.jpg",
+      @res = do_put_request("#{CONFIG[:category]}/Capture d'écran.jpg",
              File.open("fixtures/files/capture.jpg"),
              { content_type: "image/jpeg; charset=binary" })
     end
@@ -231,7 +231,7 @@ describe "Requests" do
 
   describe "GET a JPG image" do
     before do
-      @res = do_network_request("Capture d'écran.jpg", method: :get, raw_response: true)
+      @res = do_network_request("#{CONFIG[:category]}/Capture d'écran.jpg", method: :get, raw_response: true)
     end
 
     it "works" do
@@ -246,7 +246,7 @@ describe "Requests" do
 
   describe "GET a non-existing object" do
     it "returns a 404" do
-      do_get_request("four-oh-four.html") do |response|
+      do_get_request("#{CONFIG[:category]}/four-oh-four.html") do |response|
         response.code.must_equal 404
       end
     end
@@ -254,7 +254,7 @@ describe "Requests" do
 
   describe "HEAD directory listing" do
     before do
-      @res = do_head_request("")
+      @res = do_head_request("#{CONFIG[:category]}/")
     end
 
     it "works" do
@@ -267,7 +267,7 @@ describe "Requests" do
 
   describe "GET directory listing" do
     before do
-      @res = do_get_request("")
+      @res = do_get_request("#{CONFIG[:category]}/")
       @listing = JSON.parse @res.body
     end
 
@@ -298,10 +298,52 @@ describe "Requests" do
     end
   end
 
+  describe "HEAD directory listing for root" do
+    before do
+      @res = do_head_request("")
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+      @res.body.must_equal ""
+    end
+  end
+
+  describe "GET directory listing for root" do
+    before do
+      @res = do_get_request("")
+      @listing = JSON.parse @res.body
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+
+      @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
+      @listing["items"].each_pair do |key, value|
+        key.must_be_kind_of String
+        value["ETag"].must_be_kind_of String
+        if key[-1] == "/"
+          value.keys.must_equal ["ETag"]
+        else
+          value["Content-Length"].must_be_kind_of Integer
+          value["Content-Type"].must_be_kind_of String
+        end
+      end
+    end
+
+    it "contains the correct items" do
+      @listing["items"].keys.must_equal ["#{CONFIG[:category]}/"]
+    end
+  end
+
   describe "GET directory listing with If-None-Match header" do
     before do
-      @etag = do_head_request("").headers[:etag]
-      do_get_request("", { if_none_match: @etag }) do |response|
+      @etag = do_head_request("#{CONFIG[:category]}/").headers[:etag]
+      do_get_request("#{CONFIG[:category]}/", { if_none_match: @etag }) do |response|
         @res = response
       end
     end
@@ -314,8 +356,8 @@ describe "Requests" do
 
   describe "GET directory listing with multiple ETags in If-None-Match header" do
     before do
-      @etag = do_head_request("").headers[:etag]
-      do_get_request("", { if_none_match: "r2d2c3po, #{@etag}" }) do |response|
+      @etag = do_head_request("#{CONFIG[:category]}/").headers[:etag]
+      do_get_request("#{CONFIG[:category]}/", { if_none_match: "r2d2c3po, #{@etag}" }) do |response|
         @res = response
       end
     end
@@ -328,7 +370,7 @@ describe "Requests" do
 
   describe "GET empty directory listing" do
     before do
-      @res = do_get_request("does-not-exist/")
+      @res = do_get_request("#{CONFIG[:category]}/does-not-exist/")
       @listing = JSON.parse @res.body
     end
 
@@ -344,10 +386,10 @@ describe "Requests" do
     it "works" do
       [ "test-object-simple.json", "Capture d'écran.jpg",
         "some-subdir/nested-folder-object.json", "my-list" ].each do |key|
-        res = do_delete_request(key)
+        res = do_delete_request("#{CONFIG[:category]}/#{key}")
 
         res.code.must_equal 200
-        do_head_request(key) do |response|
+        do_head_request("#{CONFIG[:category]}/#{key}") do |response|
           response.code.must_equal 404
         end
       end
@@ -356,7 +398,7 @@ describe "Requests" do
 
   describe "DELETE a non-existing object" do
     it "returns a 404" do
-      do_delete_request("four-oh-four.html") do |response|
+      do_delete_request("#{CONFIG[:category]}/four-oh-four.html") do |response|
         response.code.must_equal 404
       end
     end
@@ -364,7 +406,7 @@ describe "Requests" do
 
   describe "DELETE with non-matching If-Match header" do
     before do
-      do_delete_request("test-object-simple2.json", {if_match: "invalid"}) do |response|
+      do_delete_request("#{CONFIG[:category]}/test-object-simple2.json", {if_match: "invalid"}) do |response|
         @res = response
       end
     end
@@ -372,7 +414,7 @@ describe "Requests" do
     it "does not delete the object" do
       @res.code.must_equal 412
 
-      do_head_request("test-object-simple2.json") do |response|
+      do_head_request("#{CONFIG[:category]}/test-object-simple2.json") do |response|
         response.code.must_equal 200
       end
     end
@@ -380,14 +422,14 @@ describe "Requests" do
 
   describe "DELETE with matching If-Match header" do
     before do
-      etag = do_head_request("test-object-simple2.json").headers[:etag]
-      @res = do_delete_request("test-object-simple2.json", {if_match: etag})
+      etag = do_head_request("#{CONFIG[:category]}/test-object-simple2.json").headers[:etag]
+      @res = do_delete_request("#{CONFIG[:category]}/test-object-simple2.json", {if_match: etag})
     end
 
     it "deletes the object" do
       @res.code.must_equal 200
 
-      do_head_request("test-object-simple2.json") do |response|
+      do_head_request("#{CONFIG[:category]}/test-object-simple2.json") do |response|
         response.code.must_equal 404
       end
     end
@@ -395,7 +437,7 @@ describe "Requests" do
 
   describe "DELETE with If-Match header to non-existing object" do
     before do
-      do_delete_request("four-oh-four.json", {if_match: "match me"}) do |response|
+      do_delete_request("#{CONFIG[:category]}/four-oh-four.json", {if_match: "match me"}) do |response|
         @res = response
       end
     end
