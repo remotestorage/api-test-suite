@@ -44,7 +44,7 @@ CONFIG = {
 #   category: 'api-test'
 # }
 
-BASE_URL = "#{CONFIG[:host]}/#{CONFIG[:user]}/#{CONFIG[:category]}/"
+BASE_URL = "#{CONFIG[:host]}/#{CONFIG[:user]}/"
 
 def default_headers
   @default_headers ||= { authorization: "Bearer #{CONFIG[:token]}" }
