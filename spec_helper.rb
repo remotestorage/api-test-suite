@@ -24,11 +24,19 @@ end
 
 String.infect_an_assertion :assert_is_etag, :must_be_etag, :only_one_argument
 
+begin
+  token = ENV.fetch('TEST_RS_TOKEN')
+rescue KeyError => e
+  puts e
+  puts "Set it as an enviroment variable with your remoteStorage token as a value"
+  exit 1
+end
+
 CONFIG = {
   host: 'http://storage.5apps.dev',
   user: 'remotestorage-test',
   category: 'api-test',
-  token: '43c7d197cd4ba41bb473b90d92b1aa40'
+  token: token
 }
 # CONFIG = {
 #   host: 'https://storage.5apps.com',
