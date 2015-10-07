@@ -6,3 +6,4 @@ gem 'rake'
 gem 'm'
 gem 'minitest', '= 5.3.3'
 gem 'minitest-reporters'
+gem "json"
