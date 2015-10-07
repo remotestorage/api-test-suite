@@ -210,7 +210,8 @@ describe "Requests" do
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
-      @res.headers[:content_length].must_equal "14"
+      # Content-Length must match the correct length if present but it's optional
+      @res.headers[:content_length].must_equal "14" if @res.headers[:content_length]
       @res.body.must_be_empty
     end
   end
