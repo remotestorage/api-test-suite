@@ -99,7 +99,7 @@ describe "Requests" do
     before do
       do_put_request("#{CONFIG[:category]}/test-object-simple.json",
                      '{"should": "not-happen"}',
-                     { content_type: "application/json", if_match: "invalid" }) do |response|
+                     { content_type: "application/json", if_match: %Q("invalid") }) do |response|
          @res = response
        end
     end
@@ -114,7 +114,7 @@ describe "Requests" do
       do_put_request("#{CONFIG[:category]}/four-oh-four.json",
                      '{"should": "not-happen"}',
                      { content_type: "application/json",
-                       if_match: "doesnotmatter" }) do |response|
+                       if_match: %Q("doesnotmatter") }) do |response|
          @res = response
        end
     end
@@ -189,7 +189,7 @@ describe "Requests" do
     before do
       @etag = do_head_request("#{CONFIG[:category]}/test-object-simple.json").headers[:etag]
       do_get_request("#{CONFIG[:category]}/test-object-simple.json",
-                     { if_none_match: "r2d2c3po, #{@etag}" }) do |response|
+                     { if_none_match: %Q("r2d2c3po", #{@etag}) }) do |response|
         @res = response
       end
     end
@@ -358,7 +358,7 @@ describe "Requests" do
   describe "GET directory listing with multiple ETags in If-None-Match header" do
     before do
       @etag = do_head_request("#{CONFIG[:category]}/").headers[:etag]
-      do_get_request("#{CONFIG[:category]}/", { if_none_match: "r2d2c3po, #{@etag}" }) do |response|
+      do_get_request("#{CONFIG[:category]}/", { if_none_match: %Q("r2d2c3po", #{@etag}) }) do |response|
         @res = response
       end
     end
@@ -407,7 +407,7 @@ describe "Requests" do
 
   describe "DELETE with non-matching If-Match header" do
     before do
-      do_delete_request("#{CONFIG[:category]}/test-object-simple2.json", {if_match: "invalid"}) do |response|
+      do_delete_request("#{CONFIG[:category]}/test-object-simple2.json", {if_match: %Q("invalid")}) do |response|
         @res = response
       end
     end
@@ -438,7 +438,7 @@ describe "Requests" do
 
   describe "DELETE with If-Match header to non-existing object" do
     before do
-      do_delete_request("#{CONFIG[:category]}/four-oh-four.json", {if_match: "match me"}) do |response|
+      do_delete_request("#{CONFIG[:category]}/four-oh-four.json", {if_match: %Q("match me")}) do |response|
         @res = response
       end
     end
