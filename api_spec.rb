@@ -261,7 +261,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/json"
+      @res.headers[:content_type].must_equal "application/ld+json"
       @res.body.must_equal ""
     end
   end
@@ -275,7 +275,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/json"
+      @res.headers[:content_type].must_equal "application/ld+json"
 
       @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
       @listing["items"].each_pair do |key, value|
@@ -307,7 +307,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/json"
+      @res.headers[:content_type].must_equal "application/ld+json"
       @res.body.must_equal ""
     end
   end
@@ -321,7 +321,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/json"
+      @res.headers[:content_type].must_equal "application/ld+json"
 
       @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
       @listing["items"].each_pair do |key, value|
