@@ -24,27 +24,8 @@ end
 
 String.infect_an_assertion :assert_is_etag, :must_be_etag, :only_one_argument
 
-begin
-  token = ENV.fetch('TEST_RS_TOKEN')
-rescue KeyError => e
-  puts e
-  puts "Set it as an enviroment variable with your remoteStorage token as a value"
-  exit 1
-end
-
-CONFIG = {
-  host: 'http://storage.5apps.dev',
-  user: 'remotestorage-test',
-  category: 'api-test',
-  token: token
-}
-# CONFIG = {
-#   host: 'https://storage.5apps.com',
-#   user: 'remotestorage-test',
-#   category: 'api-test'
-# }
-
-BASE_URL = "#{CONFIG[:host]}/#{CONFIG[:user]}/"
+CONFIG = Hash[YAML.load_file('./config.yaml').map{|(k,v)| [k.to_sym,v]}]
+BASE_URL = CONFIG[:folder_url]
 
 def default_headers
   @default_headers ||= { authorization: "Bearer #{CONFIG[:token]}" }

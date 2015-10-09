@@ -1,0 +1,4 @@
+# absolute URL to a folder in which all tests are run
+folder_url: http://storage.5apps.dev/remotestorage-test/api-test/
+# OAuth access token
+token: ...
