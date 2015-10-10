@@ -1,0 +1,6 @@
+# Storage base URL for RS test user (as it appears in Webfinger response)
+storage_base_url: https://storage.5apps.com/rs-test
+# RS category (base folder) name
+category: api-test
+# OAuth access token with access to the above category
+token: 123456abcdef
