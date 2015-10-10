@@ -2,6 +2,7 @@ require 'rubygems'
 require 'bundler'
 Bundler.require
 require 'cgi'
+require 'yaml'
 
 require 'minitest/spec'
 require 'minitest/autorun'
@@ -24,8 +25,13 @@ end
 
 String.infect_an_assertion :assert_is_etag, :must_be_etag, :only_one_argument
 
-CONFIG = Hash[YAML.load_file('./config.yaml').map{|(k,v)| [k.to_sym,v]}]
-BASE_URL = CONFIG[:folder_url]
+begin
+  CONFIG = Hash[YAML.load_file('./config.yml').map{|(k,v)| [k.to_sym,v]}]
+rescue Errno::ENOENT
+  puts "Config file missing!\n\r".red
+  puts "Please copy config.yml.example to config.yml and enter valid data.\n\r"
+  exit 1
+end
 
 def default_headers
   @default_headers ||= { authorization: "Bearer #{CONFIG[:token]}" }
