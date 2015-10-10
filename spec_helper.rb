@@ -44,36 +44,40 @@ def do_network_request(path, options, &block)
   RestClient::Request.execute(options, &block)
 end
 
-def do_put_request(path, data, headers = {}, &block)
+def do_put_request(path, data, headers={}, &block)
   begin
-    RestClient.put "#{CONFIG[:storage_base_url]}/#{escape(path)}", data, default_headers.merge(headers), &block
+    RestClient.put "#{CONFIG[:storage_base_url]}/#{escape(path)}", data,
+                   default_headers.merge(headers), &block
   rescue => e
     puts "PUT request failed with: #{e.message}".red
     e.response
   end
 end
 
-def do_get_request(path, headers = {}, &block)
+def do_get_request(path, headers={}, &block)
   begin
-    RestClient.get "#{CONFIG[:storage_base_url]}/#{escape(path)}", default_headers.merge(headers), &block
+    RestClient.get "#{CONFIG[:storage_base_url]}/#{escape(path)}",
+                   default_headers.merge(headers), &block
   rescue => e
     puts "GET request failed with: #{e.message}".red
     e.response
   end
 end
 
-def do_delete_request(path, headers = {}, &block)
+def do_delete_request(path, headers={}, &block)
   begin
-    RestClient.delete "#{CONFIG[:storage_base_url]}/#{escape(path)}", default_headers.merge(headers), &block
+    RestClient.delete "#{CONFIG[:storage_base_url]}/#{escape(path)}",
+                      default_headers.merge(headers), &block
   rescue => e
     puts "DELETE request failed with: #{e.message}".red
     e.response
   end
 end
 
-def do_head_request(path, headers = {}, &block)
+def do_head_request(path, headers={}, &block)
   begin
-    RestClient.head "#{CONFIG[:storage_base_url]}/#{escape(path)}", default_headers.merge(headers), &block
+    RestClient.head "#{CONFIG[:storage_base_url]}/#{escape(path)}",
+                    default_headers.merge(headers), &block
   rescue => e
     puts "HEAD request failed with: #{e.message}".red
     e.response

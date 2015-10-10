@@ -311,7 +311,7 @@ describe "Requests" do
 
   describe "HEAD directory listing for root" do
     before do
-      @res = do_head_request("")
+      @res = do_head_request("", {authorization: "Bearer #{CONFIG[:root_token]}"})
     end
 
     it "works" do
@@ -324,7 +324,7 @@ describe "Requests" do
 
   describe "GET directory listing for root" do
     before do
-      @res = do_get_request("")
+      @res = do_get_request("", {authorization: "Bearer #{CONFIG[:root_token]}"})
       @listing = JSON.parse @res.body
     end
 
