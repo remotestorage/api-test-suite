@@ -1,5 +1,12 @@
 require_relative "spec_helper"
 
+def check_dir_listing_content_type(content_type)
+  content_type.must_match(%r{application\/(ld\+)?json})
+  if content_type != "application/ld+json"
+    puts "WARNING: the content type \"#{content_type}\" works for directory listings, but the correct one to use is \"application/ld+json\"".yellow
+  end
+end
+
 describe "OPTIONS" do
 
   it "returns a valid response" do
@@ -264,7 +271,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/ld+json"
+      check_dir_listing_content_type(@res.headers[:content_type])
       @res.body.must_equal ""
     end
   end
@@ -278,7 +285,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/ld+json"
+      check_dir_listing_content_type(@res.headers[:content_type])
 
       @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
       @listing["items"].each_pair do |key, value|
@@ -310,7 +317,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/ld+json"
+      check_dir_listing_content_type(@res.headers[:content_type])
       @res.body.must_equal ""
     end
   end
@@ -324,7 +331,7 @@ describe "Requests" do
     it "works" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
-      @res.headers[:content_type].must_equal "application/ld+json"
+      check_dir_listing_content_type(@res.headers[:content_type])
 
       @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
       @listing["items"].each_pair do |key, value|
