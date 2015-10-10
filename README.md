@@ -8,6 +8,8 @@ spec](http://tools.ietf.org/html/draft-dejong-remotestorage-04) (version -04).
 
 ## Usage
 
+You need `ruby` and `bundler` installed on your OS.
+
 - `bundle install`
-- Edit `config.yaml`
+- Copy `config.yaml.example` to `config.yaml` and edit it.
 - `rake test`
