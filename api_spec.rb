@@ -437,55 +437,38 @@ describe "Requests" do
     end
   end
 
-  describe "when using the read-only token ('#{CONFIG[:category]}:r')" do
+  describe "using a read-only token" do
 
-    describe "PUT a JSON object" do
-      before do
-        @res = do_put_request("#{CONFIG[:category]}/test-object-simple-test.json",
-                              '{"new": "object"}',
-                              { content_type: "application/json",
-                                authorization: "Bearer #{CONFIG[:read_only_token]}" })
-      end
+    describe "GET" do
+      it "works" do
+        res = do_get_request("#{CONFIG[:category]}/test-object-simple.json",
+                             authorization: "Bearer #{CONFIG[:read_only_token]}")
 
-      it "returns 401 (unauthorized)" do
-        @res.code.must_equal 401
+        res.code.must_equal 200
       end
     end
 
-    describe "GET a JSON object" do
-      before do
-        @res = do_get_request("#{CONFIG[:category]}/test-object-simple.json",
+    describe "HEAD" do
+      it "works" do
+        res = do_head_request("#{CONFIG[:category]}/test-object-simple.json",
                               authorization: "Bearer #{CONFIG[:read_only_token]}")
-      end
 
-      it "works" do
-        @res.code.must_equal 200
-        @res.headers[:etag].wont_be_nil
-        @res.headers[:etag].must_be_etag
-        @res.headers[:content_type].must_equal "application/json"
-        @res.headers[:content_length].must_equal "14"
-        @res.body.must_equal '{"foo": "bar"}'
+        res.code.must_equal 200
       end
     end
 
-    describe "HEAD a JSON object" do
-      before do
-        @res = do_head_request("#{CONFIG[:category]}/test-object-simple.json",
-                               authorization: "Bearer #{CONFIG[:read_only_token]}")
-      end
+    describe "PUT" do
+      it "returns 401 (unauthorized)" do
+        res = do_put_request("#{CONFIG[:category]}/test-object-simple-test.json",
+                             '{"new": "object"}',
+                             { content_type: "application/json",
+                               authorization: "Bearer #{CONFIG[:read_only_token]}" })
 
-      it "works" do
-        @res.code.must_equal 200
-        @res.headers[:etag].wont_be_nil
-        @res.headers[:etag].must_be_etag
-        @res.headers[:content_type].must_equal "application/json"
-        # Content-Length must match the correct length if present but it's optional
-        @res.headers[:content_length].must_equal "14" if @res.headers[:content_length]
-        @res.body.must_be_empty
+        res.code.must_equal 401
       end
     end
 
-    describe "DELETE objects" do
+    describe "DELETE" do
       it "returns 401 (unauthorized)" do
         res = do_delete_request("#{CONFIG[:category]}/test-object-simple.json",
                                 authorization: "Bearer #{CONFIG[:read_only_token]}")

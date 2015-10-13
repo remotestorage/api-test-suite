@@ -2,7 +2,7 @@
 storage_base_url: https://storage.5apps.com/rs-test
 # RS category (base folder) name
 category: api-test
-# OAuth access token with access to the above category
+# OAuth access token with read-write access to the above category
 token: 123456abcdef
 # OAuth access token with read-only access to the above category
 read_only_token: 123456abcdef
