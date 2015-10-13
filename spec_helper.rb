@@ -69,7 +69,7 @@ def do_delete_request(path, headers={}, &block)
     RestClient.delete "#{CONFIG[:storage_base_url]}/#{escape(path)}",
                       default_headers.merge(headers), &block
   rescue => e
-    puts "DELETE request failed with: #{e.message}".red
+    puts "DELETE request failed with: #{e.message}"
     e.response
   end
 end
@@ -79,7 +79,7 @@ def do_head_request(path, headers={}, &block)
     RestClient.head "#{CONFIG[:storage_base_url]}/#{escape(path)}",
                     default_headers.merge(headers), &block
   rescue => e
-    puts "HEAD request failed with: #{e.message}".red
+    puts "HEAD request failed with: #{e.message}"
     e.response
   end
 end
@@ -89,7 +89,7 @@ def do_options_request(path, headers={}, &block)
     RestClient.options "#{CONFIG[:storage_base_url]}/#{escape(path)}",
                     default_headers.merge(headers), &block
   rescue => e
-    puts "OPTIONS request failed with: #{e.message}".red
+    puts "OPTIONS request failed with: #{e.message}"
     e.response
   end
 end
