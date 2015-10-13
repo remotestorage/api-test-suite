@@ -428,15 +428,13 @@ describe "Requests" do
   describe "when using the read-only token ('#{CONFIG[:category]}:r')" do
 
     describe "PUT a JSON object" do
-      before do
-        @res = do_put_request("#{CONFIG[:category]}/test-object-simple-test.json",
-                              '{"new": "object"}',
-                              { content_type: "application/json",
-                                authorization: "Bearer #{CONFIG[:read_only_token]}" })
-      end
-
       it "returns 401 (unauthorized)" do
-        @res.code.must_equal 401
+        lambda {
+          RestClient.put "#{CONFIG[:storage_base_url]}/#{CONFIG[:category]}/test-object-simple.json",
+                          '{"new": "object"}',
+                          { content_type: "application/json",
+                          authorization: "Bearer #{CONFIG[:read_only_token]}" }
+        }.must_raise RestClient::Unauthorized
       end
     end
 
@@ -475,10 +473,10 @@ describe "Requests" do
 
     describe "DELETE objects" do
       it "returns 401 (unauthorized)" do
-        res = do_delete_request("#{CONFIG[:category]}/test-object-simple.json",
-                                authorization: "Bearer #{CONFIG[:read_only_token]}")
-
-        res.code.must_equal 401
+        lambda {
+          RestClient.delete "#{CONFIG[:storage_base_url]}/#{CONFIG[:category]}/test-object-simple.json",
+                            authorization: "Bearer #{CONFIG[:read_only_token]}"
+        }.must_raise RestClient::Unauthorized
       end
     end
   end
