@@ -476,6 +476,74 @@ describe "Requests" do
         res.code.must_equal 401
       end
     end
+
+  end
+
+  describe "in a public folder" do
+    describe "PUT with a read/write category token" do
+      it "works" do
+        res = do_put_request("public/#{CONFIG[:category]}/test-object-simple.json",
+                             '{"new": "object"}',
+                             { content_type: "application/json" })
+        [200, 201].must_include res.code
+      end
+    end
+
+    describe "GET without an OAuth token" do
+      it "works" do
+        res = do_get_request("public/#{CONFIG[:category]}/test-object-simple.json",
+                             authorization: nil)
+
+        res.code.must_equal 200
+      end
+    end
+
+    describe "HEAD without an OAuth token" do
+      it "works" do
+        res = do_head_request("public/#{CONFIG[:category]}/test-object-simple.json",
+                              authorization: nil)
+
+        res.code.must_equal 200
+      end
+    end
+
+    describe "PUT without an OAuth token" do
+      it "returns 401 (unauthorized)" do
+        res = do_put_request("public/#{CONFIG[:category]}/test-object-simple-test.json",
+                             '{"new": "object"}',
+                             { content_type: "application/json",
+                               authorization: nil })
+
+        res.code.must_equal 401
+      end
+    end
+
+    describe "DELETE without an OAuth token" do
+      it "returns 401 (unauthorized)" do
+        res = do_delete_request("public/#{CONFIG[:category]}/test-object-simple.json",
+                                authorization: nil)
+
+        res.code.must_equal 401
+      end
+    end
+
+    describe "GET directory listing without an OAuth token" do
+      before do
+        @res = do_get_request("public/#{CONFIG[:category]}/", authorization: nil)
+      end
+
+      it "returns a 401" do
+        @res.code.must_equal 401
+      end
+    end
+
+    describe "DELETE with a read/write category token" do
+      it "works" do
+        res = do_delete_request("public/#{CONFIG[:category]}/test-object-simple.json")
+
+        res.code.must_equal 200
+      end
+    end
   end
 
   describe "DELETE objects" do
