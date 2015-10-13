@@ -309,7 +309,26 @@ describe "Requests" do
     end
   end
 
-  describe "HEAD directory listing for root" do
+  describe "PUT a JSON object to root dir" do
+    it "fails with normal token" do
+      res = do_put_request("thisisbadpractice.json", '{"new": "object"}',
+                            { content_type: "application/json" })
+
+      [401, 403].must_include res.code
+    end
+
+    it "works with root token" do
+      res = do_put_request("thisisbadpractice.json", '{"new": "object"}',
+                            { content_type: "application/json",
+                              authorization: "Bearer #{CONFIG[:root_token]}"})
+
+      [200, 201].must_include res.code
+      res.headers[:etag].wont_be_nil
+      res.headers[:etag].must_be_etag
+    end
+  end
+
+  describe "HEAD directory listing of root dir" do
     before do
       @res = do_head_request("", {authorization: "Bearer #{CONFIG[:root_token]}"})
     end
@@ -322,7 +341,7 @@ describe "Requests" do
     end
   end
 
-  describe "GET directory listing for root" do
+  describe "GET directory listing of root dir" do
     before do
       @res = do_get_request("", {authorization: "Bearer #{CONFIG[:root_token]}"})
       @listing = JSON.parse @res.body
@@ -347,7 +366,20 @@ describe "Requests" do
     end
 
     it "contains the correct items" do
-      @listing["items"].keys.must_equal ["#{CONFIG[:category]}/"]
+      @listing["items"].keys.must_equal ["#{CONFIG[:category]}/",
+                                         "thisisbadpractice.json"]
+    end
+  end
+
+  describe "DELETE object in root dir" do
+    it "works" do
+      res = do_delete_request("thisisbadpractice.json",
+                              {authorization: "Bearer #{CONFIG[:root_token]}"})
+
+      res.code.must_equal 200
+      do_head_request("thisisbadpractice.json", {authorization: "Bearer #{CONFIG[:root_token]}"}) do |response|
+        response.code.must_equal 404
+      end
     end
   end
 
