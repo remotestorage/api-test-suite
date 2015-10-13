@@ -38,10 +38,16 @@ def default_headers
 end
 
 def do_network_request(path, options, &block)
-  options[:headers] = default_headers.merge(options[:headers] || {})
-  options[:url] = "#{CONFIG[:storage_base_url]}/#{escape(path)}"
+  begin
+    options[:base_url] = options[:base_url] || CONFIG[:storage_base_url]
+    options[:url] = "#{options[:base_url]}/#{escape(path)}"
+    options[:headers] = default_headers.merge(options[:headers] || {})
 
-  RestClient::Request.execute(options, &block)
+    RestClient::Request.execute(options, &block)
+  rescue => e
+    puts "#{options[:method]} request failed with: #{e.message}"
+    e.response
+  end
 end
 
 def do_put_request(path, data, headers={}, &block)
