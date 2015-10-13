@@ -65,7 +65,7 @@ def do_get_request(path, headers={}, &block)
     RestClient.get "#{CONFIG[:storage_base_url]}/#{escape(path)}",
                    default_headers.merge(headers), &block
   rescue => e
-    puts "GET request failed with: #{e.message}".red
+    puts "GET request failed with: #{e.message}"
     e.response
   end
 end
