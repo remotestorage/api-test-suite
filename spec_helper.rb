@@ -49,7 +49,7 @@ def do_put_request(path, data, headers={}, &block)
     RestClient.put "#{CONFIG[:storage_base_url]}/#{escape(path)}", data,
                    default_headers.merge(headers), &block
   rescue => e
-    puts "PUT request failed with: #{e.message}".red
+    puts "PUT request failed with: #{e.message}"
     e.response
   end
 end
