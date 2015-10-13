@@ -437,6 +437,62 @@ describe "Requests" do
     end
   end
 
+  describe "when using the read-only token ('#{CONFIG[:category]}:r')" do
+
+    describe "PUT a JSON object" do
+      it "returns 401 (unauthorized)" do
+        lambda {
+          RestClient.put "#{CONFIG[:storage_base_url]}/#{CONFIG[:category]}/test-object-simple.json",
+                          '{"new": "object"}',
+                          { content_type: "application/json",
+                          authorization: "Bearer #{CONFIG[:read_only_token]}" }
+        }.must_raise RestClient::Unauthorized
+      end
+    end
+
+    describe "GET a JSON object" do
+      before do
+        @res = do_get_request("#{CONFIG[:category]}/test-object-simple.json",
+                              authorization: "Bearer #{CONFIG[:read_only_token]}")
+      end
+
+      it "works" do
+        @res.code.must_equal 200
+        @res.headers[:etag].wont_be_nil
+        @res.headers[:etag].must_be_etag
+        @res.headers[:content_type].must_equal "application/json"
+        @res.headers[:content_length].must_equal "14"
+        @res.body.must_equal '{"foo": "bar"}'
+      end
+    end
+
+    describe "HEAD a JSON object" do
+      before do
+        @res = do_head_request("#{CONFIG[:category]}/test-object-simple.json",
+                               authorization: "Bearer #{CONFIG[:read_only_token]}")
+      end
+
+      it "works" do
+        @res.code.must_equal 200
+        @res.headers[:etag].wont_be_nil
+        @res.headers[:etag].must_be_etag
+        @res.headers[:content_type].must_equal "application/json"
+        # Content-Length must match the correct length if present but it's optional
+        @res.headers[:content_length].must_equal "14" if @res.headers[:content_length]
+        @res.body.must_be_empty
+      end
+    end
+
+    describe "DELETE objects" do
+      it "returns 401 (unauthorized)" do
+        lambda {
+          RestClient.delete "#{CONFIG[:storage_base_url]}/#{CONFIG[:category]}/test-object-simple.json",
+                            authorization: "Bearer #{CONFIG[:read_only_token]}"
+        }.must_raise RestClient::Unauthorized
+      end
+    end
+  end
+
   describe "DELETE objects" do
     it "works" do
       [ "test-object-simple.json", "Capture d'écran.jpg",
