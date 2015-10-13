@@ -9,31 +9,43 @@ end
 
 describe "OPTIONS" do
 
-  it "returns a valid response" do
-    begin
-      res = RestClient.options(
-        CONFIG[:storage_base_url]+"/foo", {
-          access_control_request_method: 'GET',
+  describe "GET" do
+    it "returns a valid response" do
+      res = do_options_request CONFIG[:category]+"/foo", {
+        access_control_request_method: 'GET',
+        origin: 'https://unhosted.org',
+        referer: 'https://unhosted.org'
+      }
+
+      res.code.must_equal 200
+      res.headers[:access_control_allow_origin].must_match(/(\*|https:\/\/unhosted\.org)/)
+      res.headers[:access_control_expose_headers].must_include 'ETag'
+      res.headers[:access_control_allow_methods].must_include 'GET'
+
+      ['Authorization', 'Content-Type', 'Origin', 'If-Match', 'If-None-Match'].each do |header|
+        res.headers[:access_control_allow_headers].must_include header
+      end
+    end
+  end
+
+  describe "PUT and DELETE" do
+    it "returns a valid response" do
+      ["PUT", "DELETE"].each do |method|
+        res = do_options_request CONFIG[:category]+"/foo", {
+          access_control_request_method: method,
           origin: 'https://unhosted.org',
           referer: 'https://unhosted.org'
         }
-      )
-    rescue => e
-      puts "OPTIONS request failed with: #{e.message}".red
-      res = e.response
-    end
 
-    res.code.must_equal 200
+        res.code.must_equal 200
+        res.headers[:access_control_allow_origin].must_equal "https://unhosted.org"
+        res.headers[:access_control_expose_headers].must_include 'ETag'
+        res.headers[:access_control_allow_methods].must_include method
 
-    res.headers[:access_control_allow_origin].must_equal 'https://unhosted.org'
-    res.headers[:access_control_expose_headers].must_include 'ETag'
-
-    ['GET', 'PUT', 'DELETE'].each do |verb|
-      res.headers[:access_control_allow_methods].must_include verb
-    end
-
-    ['Authorization', 'Content-Type', 'Origin', 'If-Match', 'If-None-Match'].each do |header|
-      res.headers[:access_control_allow_headers].must_include header
+        ['Authorization', 'Content-Type', 'Origin', 'If-Match', 'If-None-Match'].each do |header|
+          res.headers[:access_control_allow_headers].must_include header
+        end
+      end
     end
   end
 

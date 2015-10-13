@@ -84,6 +84,16 @@ def do_head_request(path, headers={}, &block)
   end
 end
 
+def do_options_request(path, headers={}, &block)
+  begin
+    RestClient.options "#{CONFIG[:storage_base_url]}/#{escape(path)}",
+                    default_headers.merge(headers), &block
+  rescue => e
+    puts "OPTIONS request failed with: #{e.message}".red
+    e.response
+  end
+end
+
 private
 
 def escape(url)
