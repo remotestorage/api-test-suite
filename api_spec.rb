@@ -472,13 +472,13 @@ describe "Requests" do
     end
 
     describe "PUT" do
-      it "returns 401 (unauthorized)" do
+      it "fails" do
         res = do_put_request("#{CONFIG[:category]}/test-object-simple-test.json",
                              '{"new": "object"}',
                              { content_type: "application/json",
                                authorization: "Bearer #{CONFIG[:read_only_token]}" })
 
-        res.code.must_equal 401
+        [401, 403].must_include res.code
       end
     end
 
