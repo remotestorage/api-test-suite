@@ -551,6 +551,15 @@ describe "Requests" do
 
         [401, 403].must_include res.code
       end
+
+      it "doesn't expose if folder is empty" do
+        res = do_get_request("public/#{CONFIG[:category]}/", authorization: nil)
+        res2 = do_get_request("public/#{CONFIG[:category]}/foo/", authorization: nil)
+
+        res.code.must_equal res2.code
+        res.headers.must_equal res2.headers
+        res.body.must_equal res2.body
+      end
     end
 
     describe "GET directory listing with a read-write category token" do
