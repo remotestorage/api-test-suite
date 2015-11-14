@@ -81,6 +81,40 @@ describe "Requests" do
     end
   end
 
+  describe "PUT a JSON object" do
+    before do
+      @old_outer_listing_res = do_get_request("#{CONFIG[:category]}/")
+      @old_listing_res = do_get_request("#{CONFIG[:category]}/some-other-subdir/")
+      @res = do_put_request("#{CONFIG[:category]}/some-other-subdir/test-object-simple.json",
+                            '{"new": "object"}',
+                            { content_type: "application/json" })
+      @outer_listing_res = do_get_request("#{CONFIG[:category]}/")
+      @listing_res = do_get_request("#{CONFIG[:category]}/some-other-subdir/")
+
+      @item_etag = @res.headers[:etag]
+      @old_listing = JSON.parse @old_listing_res.body
+      @listing = JSON.parse @listing_res.body
+      @item_info = @listing["items"]["test-object-simple.json"]
+      @old_item_info = @old_listing["items"]["test-object-simple.json"]
+    end
+
+    it "works" do
+      [200, 201].must_include @res.code
+      @item_etag.wont_be_nil
+      @item_etag.must_be_etag
+    end
+
+    it "updates the file etag in the listing" do
+      @item_info["ETag"].must_equal @item_etag.delete('"')
+      @item_info["ETag"].wont_equal @old_item_info["ETag"]
+    end
+
+    it "updates the folder etag" do
+      @listing_res.headers[:etag].wont_equal @old_outer_listing_res.headers[:etag]
+      @outer_listing_res.headers[:etag].wont_equal @old_outer_listing_res.headers[:etag]
+    end
+  end
+
   describe "PUT with same name as existing directory" do
     it "returns a 409" do
       do_put_request("#{CONFIG[:category]}/some-subdir", '', {content_type: "text/plain"}) do |res|
@@ -314,8 +348,8 @@ describe "Requests" do
     end
 
     it "contains the correct items" do
-      @listing["items"].length.must_equal 5
-      ["Capture d'écran.jpg", "my-list", "some-subdir/",
+      @listing["items"].length.must_equal 6
+      ["Capture d'écran.jpg", "my-list", "some-subdir/", "some-other-subdir/",
        "test-object-simple.json", "test-object-simple2.json"].each do |key|
         @listing["items"].keys.must_include key
       end
