@@ -81,7 +81,7 @@ describe "Requests" do
     end
   end
 
-  describe "PUT a JSON object" do
+  describe "PUT another JSON object" do
     before do
       @old_outer_listing_res = do_get_request("#{CONFIG[:category]}/")
       @old_listing_res = do_get_request("#{CONFIG[:category]}/some-other-subdir/")
