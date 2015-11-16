@@ -624,8 +624,9 @@ describe "Requests" do
 
   describe "DELETE objects" do
     it "works" do
-      [ "test-object-simple.json", "Capture d'écran.jpg",
-        "some-subdir/nested-folder-object.json", "my-list" ].each do |key|
+      [ "test-object-simple.json", "some-other-subdir/test-object-simple.json",
+        "Capture d'écran.jpg", "some-subdir/nested-folder-object.json",
+        "my-list" ].each do |key|
         res = do_delete_request("#{CONFIG[:category]}/#{key}")
 
         res.code.must_equal 200
