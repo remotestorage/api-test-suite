@@ -81,36 +81,36 @@ describe "Requests" do
     end
   end
 
-  describe "PUT another JSON object" do
+  describe "updating that JSON object" do
     before do
       @old_outer_listing_res = do_get_request("#{CONFIG[:category]}/")
-      @old_listing_res = do_get_request("#{CONFIG[:category]}/some-other-subdir/")
-      @res = do_put_request("#{CONFIG[:category]}/some-other-subdir/test-object-simple.json",
-                            '{"new": "object"}',
-                            { content_type: "application/json" })
-      @outer_listing_res = do_get_request("#{CONFIG[:category]}/")
-      @listing_res = do_get_request("#{CONFIG[:category]}/some-other-subdir/")
+      @old_listing_res = do_get_request("#{CONFIG[:category]}/some-subdir/")
+      old_listing = JSON.parse @old_listing_res.body
+      @old_item_info = old_listing["items"]["nested-folder-object.json"]
 
+      @res = do_put_request("#{CONFIG[:category]}/some-subdir/nested-folder-object.json",
+                            '{"foo": "bam"}',
+                            { content_type: "application/json" })
       @item_etag = @res.headers[:etag]
-      @old_listing = JSON.parse @old_listing_res.body
-      @listing = JSON.parse @listing_res.body
-      @item_info = @listing["items"]["test-object-simple.json"]
-      @old_item_info = @old_listing["items"]["test-object-simple.json"]
+
+      @outer_listing_res = do_get_request("#{CONFIG[:category]}/")
+      @listing_res = do_get_request("#{CONFIG[:category]}/some-subdir/")
+      listing = JSON.parse @listing_res.body
+      @item_info = listing["items"]["nested-folder-object.json"]
     end
 
     it "works" do
+      # before runs for each block once, so we have to put all blocks into one
       [200, 201].must_include @res.code
       @item_etag.wont_be_nil
       @item_etag.must_be_etag
-    end
 
-    it "updates the file etag in the listing" do
+      # updates the file etags in the folder listing
       @item_info["ETag"].must_equal @item_etag.delete('"')
       @item_info["ETag"].wont_equal @old_item_info["ETag"]
-    end
 
-    it "updates the folder etag" do
-      @listing_res.headers[:etag].wont_equal @old_outer_listing_res.headers[:etag]
+      # updates the folder etag
+      @listing_res.headers[:etag].wont_equal @old_listing_res.headers[:etag]
       @outer_listing_res.headers[:etag].wont_equal @old_outer_listing_res.headers[:etag]
     end
   end
@@ -348,8 +348,8 @@ describe "Requests" do
     end
 
     it "contains the correct items" do
-      @listing["items"].length.must_equal 6
-      ["Capture d'écran.jpg", "my-list", "some-subdir/", "some-other-subdir/",
+      @listing["items"].length.must_equal 5
+      ["Capture d'écran.jpg", "my-list", "some-subdir/",
        "test-object-simple.json", "test-object-simple2.json"].each do |key|
         @listing["items"].keys.must_include key
       end
@@ -624,9 +624,8 @@ describe "Requests" do
 
   describe "DELETE objects" do
     it "works" do
-      [ "test-object-simple.json", "some-other-subdir/test-object-simple.json",
-        "Capture d'écran.jpg", "some-subdir/nested-folder-object.json",
-        "my-list" ].each do |key|
+      [ "test-object-simple.json", "Capture d'écran.jpg",
+        "some-subdir/nested-folder-object.json", "my-list" ].each do |key|
         res = do_delete_request("#{CONFIG[:category]}/#{key}")
 
         res.code.must_equal 200
