@@ -123,6 +123,16 @@ describe "Requests" do
     end
   end
 
+  describe "PUT with Content-Range" do
+    it "returns a 400" do
+      # https://tools.ietf.org/html/rfc7231#section-4.3.4
+      do_put_request("#{CONFIG[:category]}/some-subdir/nested-folder-object.json",
+                     'sup', {content_range: "bytes 0-3/3", content_type: "text/plain"}) do |res|
+        res.code.must_equal 400
+      end
+    end
+  end
+
   describe "PUT with same directory name as existing object" do
     before do
       do_put_request("#{CONFIG[:category]}/my-list", '', {content_type: "text/plain"})
