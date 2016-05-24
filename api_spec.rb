@@ -233,7 +233,7 @@ describe "Requests" do
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
       @res.headers[:content_length].must_equal "14"
-      @res.headers[:expires].must_equal "0"
+      @res.headers[:cache_control].must_equal "no-cache"
       @res.body.must_equal '{"foo": "bar"}'
     end
   end
