@@ -61,7 +61,7 @@ describe "Requests" do
     end
 
     it "works" do
-      [200, 201].must_include @res.code
+      @res.code.must_equal 201
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
@@ -101,7 +101,7 @@ describe "Requests" do
 
     it "works" do
       # before runs for each block once, so we have to put all blocks into one
-      [200, 201].must_include @res.code
+      [204, 200].must_include @res.code
       @item_etag.wont_be_nil
       @item_etag.must_be_etag
 
@@ -155,7 +155,7 @@ describe "Requests" do
     end
 
     it "updates the object" do
-      [200, 201].must_include @res.code
+      [200, 204].must_include @res.code
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
@@ -216,7 +216,7 @@ describe "Requests" do
     end
 
     it "works" do
-      [200, 201].must_include @res.code
+      @res.code.must_equal 201
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
@@ -291,7 +291,7 @@ describe "Requests" do
     end
 
     it "works" do
-      [200, 201].must_include @res.code
+      @res.code.must_equal 201
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
     end
@@ -379,7 +379,7 @@ describe "Requests" do
                             { content_type: "application/json",
                               authorization: "Bearer #{CONFIG[:root_token]}"})
 
-      [200, 201].must_include res.code
+      res.code.must_equal 201
       res.headers[:etag].wont_be_nil
       res.headers[:etag].must_be_etag
     end
@@ -546,7 +546,7 @@ describe "Requests" do
                              '{"new": "object"}',
                              { content_type: "application/json" })
 
-        [200, 201].must_include res.code
+        [200, 204].must_include res.code
       end
     end
 
