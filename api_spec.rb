@@ -423,8 +423,9 @@ describe "Requests" do
     end
 
     it "contains the correct items" do
-      @listing["items"].keys.must_equal ["#{CONFIG[:category]}/",
-                                         "thisisbadpractice.json"]
+      @listing["items"].keys.must_include "#{CONFIG[:category]}/"
+      @listing["items"].keys.must_include "thisisbadpractice.json"                                 
+      @listing["items"].count.must_equal 2
     end
   end
 
