@@ -19,7 +19,7 @@ end
 
 module MiniTest::Assertions
   def assert_is_etag(string)
-    assert string.match(/(W\/)?"([^"]|\\")*"/i), "Expected #{string} to be a valid ETag"
+    assert string.match(/^"([^"]|\\")*"/i), "Expected #{string} to be a strong ETag"
   end
 end
 

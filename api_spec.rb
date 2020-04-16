@@ -56,7 +56,7 @@ describe "Requests" do
   describe "PUT a JSON object" do
     before do
       @res = do_put_request("#{CONFIG[:category]}/test-object-simple.json",
-                            '{"new": "object"}',
+                            '{"new": "object", "should_be": "large_enough", "to_trigger": "compression", "if_enabled": "on_server"}',
                             { content_type: "application/json" })
     end
 
@@ -148,7 +148,8 @@ describe "Requests" do
   describe "PUT with matching If-Match header" do
     before do
       @etag = do_head_request("#{CONFIG[:category]}/test-object-simple.json").headers[:etag]
-      do_put_request("#{CONFIG[:category]}/test-object-simple.json", '{"foo": "bar"}',
+      do_put_request("#{CONFIG[:category]}/test-object-simple.json",
+                     '{"new": "object", "should_be": "large_enough", "to_trigger": "compression", "if_enabled": "on_server"}',
                      { content_type: "application/json", if_match: @etag }) do |response|
          @res = response
        end
@@ -208,7 +209,7 @@ describe "Requests" do
   describe "PUT with If-None-Match header to non-existing object" do
     before do
       do_put_request("#{CONFIG[:category]}/test-object-simple2.json",
-                     '{"should": "happen"}',
+                     '{"new": "object", "should_be": "large_enough", "to_trigger": "compression", "if_enabled": "on_server"}',
                      { content_type: "application/json",
                        if_none_match: "*" }) do |response|
          @res = response
@@ -232,9 +233,27 @@ describe "Requests" do
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
-      @res.headers[:content_length].must_equal "14"
+      @res.headers[:content_length].must_equal "102"
       @res.headers[:cache_control].must_equal "no-cache"
-      @res.body.must_equal '{"foo": "bar"}'
+      @res.body.must_equal '{"new": "object", "should_be": "large_enough", "to_trigger": "compression", "if_enabled": "on_server"}'
+    end
+  end
+
+  describe "GET a JSON object while accepting compressed content" do
+    before do
+      @res = do_get_request("#{CONFIG[:category]}/test-object-simple.json",
+                            { accept_encoding: 'gzip, deflate, br' })
+    end
+
+    it "works" do
+      @res.code.must_equal 200
+      @res.headers[:content_encoding].must_be_nil
+      @res.headers[:etag].wont_be_nil
+      @res.headers[:etag].must_be_etag
+      @res.headers[:content_type].must_equal "application/json"
+      @res.headers[:content_length].must_equal "102"
+      @res.headers[:cache_control].must_equal "no-cache"
+      @res.body.must_equal '{"new": "object", "should_be": "large_enough", "to_trigger": "compression", "if_enabled": "on_server"}'
     end
   end
 
@@ -278,7 +297,7 @@ describe "Requests" do
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
       # Content-Length must match the correct length if present but it's optional
-      @res.headers[:content_length].must_equal "14" if @res.headers[:content_length]
+      @res.headers[:content_length].must_equal "102" if @res.headers[:content_length]
       @res.body.must_be_empty
     end
   end
