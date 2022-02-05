@@ -12,6 +12,7 @@ You need a remoteStorage test account with no data in it,
 and three tokens for that account - one with read/write access to a category
 (such as `api-test`), one with read-only access to that category, and
 one with read/write access to all categories.
+(The [`example`](https://github.com/remotestorage/armadietto/tree/master/example) app in the Armedietto repository can help you generate these.)
 You also need another account on that server 
 (which can have any data in it, and which won't be altered by a successful test).
 
