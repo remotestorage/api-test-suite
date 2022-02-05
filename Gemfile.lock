@@ -46,6 +46,3 @@ DEPENDENCIES
   minitest-reporters
   rake
   rest-client
-
-BUNDLED WITH
-   1.14.1
