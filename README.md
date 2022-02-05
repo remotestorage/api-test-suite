@@ -7,8 +7,14 @@ to -05).
 
 ## Usage
 
-You need `ruby` and `bundler` installed on your OS.
+You need `ruby 2.6` or `2.7` and `bundler` installed on your OS.
+You need a remoteStorage test account with no data in it, 
+and three tokens for that account - one with read/write access to a category
+(such as `api-test`), one with read-only access to that category, and
+one with read/write access to all categories.
+You also need another account on that server 
+(which can have any data in it, and which won't be altered by a successful test).
 
 - `bundle install`
-- Copy `config.yml.example` to `config.yml` and edit it.
+- Copy `config.yml.example` to `config.yml` and set the above values in it.
 - `rake test`
