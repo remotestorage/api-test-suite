@@ -17,10 +17,11 @@ describe "OPTIONS" do
         referer: 'https://unhosted.org'
       }
 
-      res.code.must_equal 200
+      [200, 204].must_include res.code
       res.headers[:access_control_allow_origin].must_match(/(\*|https:\/\/unhosted\.org)/)
       res.headers[:access_control_expose_headers].must_include 'ETag'
       res.headers[:access_control_allow_methods].must_include 'GET'
+      res.body.must_be_empty
 
       ['Authorization', 'Content-Type', 'Origin', 'If-Match', 'If-None-Match'].each do |header|
         res.headers[:access_control_allow_headers].must_include header
@@ -37,10 +38,11 @@ describe "OPTIONS" do
           referer: 'https://unhosted.org'
         }
 
-        res.code.must_equal 200
+        [200, 204].must_include res.code
         res.headers[:access_control_allow_origin].must_equal "https://unhosted.org"
         res.headers[:access_control_expose_headers].must_include 'ETag'
         res.headers[:access_control_allow_methods].must_include method
+        res.body.must_be_empty
 
         ['Authorization', 'Content-Type', 'Origin', 'If-Match', 'If-None-Match'].each do |header|
           res.headers[:access_control_allow_headers].must_include header
@@ -292,7 +294,7 @@ describe "Requests" do
     end
 
     it "works" do
-      @res.code.must_equal 200
+      [200, 204].must_include @res.code
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
@@ -345,7 +347,7 @@ describe "Requests" do
     end
 
     it "works" do
-      @res.code.must_equal 200
+      [200, 204].must_include @res.code
       @res.headers[:etag].must_be_etag
       check_dir_listing_content_type(@res.headers[:content_type])
       @res.body.must_equal ""
@@ -410,7 +412,7 @@ describe "Requests" do
     end
 
     it "works" do
-      @res.code.must_equal 200
+      [200, 204].must_include @res.code
       @res.headers[:etag].must_be_etag
       check_dir_listing_content_type(@res.headers[:content_type])
       @res.body.must_equal ""
@@ -443,7 +445,7 @@ describe "Requests" do
 
     it "contains the correct items" do
       @listing["items"].keys.must_include "#{CONFIG[:category]}/"
-      @listing["items"].keys.must_include "thisisbadpractice.json"                                 
+      @listing["items"].keys.must_include "thisisbadpractice.json"
       @listing["items"].count.must_equal 2
     end
   end
@@ -532,7 +534,8 @@ describe "Requests" do
         res = do_head_request("#{CONFIG[:category]}/test-object-simple.json",
                               authorization: "Bearer #{CONFIG[:read_only_token]}")
 
-        res.code.must_equal 200
+        [200, 204].must_include res.code
+        res.body.must_be_empty
       end
     end
 
@@ -594,7 +597,8 @@ describe "Requests" do
         res = do_head_request("public/#{CONFIG[:category]}/test-object-simple.json",
                               authorization: nil)
 
-        res.code.must_equal 200
+        [200, 204].must_include res.code
+        res.body.must_be_empty
       end
     end
 
@@ -647,7 +651,7 @@ describe "Requests" do
       it "works" do
         res = do_delete_request("public/#{CONFIG[:category]}/test-object-simple.json")
 
-        res.code.must_equal 200
+        [200, 204].must_include res.code
       end
     end
   end
@@ -658,7 +662,7 @@ describe "Requests" do
         "some-subdir/nested-folder-object.json", "my-list" ].each do |key|
         res = do_delete_request("#{CONFIG[:category]}/#{key}")
 
-        res.code.must_equal 200
+        [200, 204].must_include res.code
         do_head_request("#{CONFIG[:category]}/#{key}") do |response|
           response.code.must_equal 404
         end
@@ -697,7 +701,7 @@ describe "Requests" do
     end
 
     it "deletes the object" do
-      @res.code.must_equal 200
+      [200, 204].must_include @res.code
 
       do_head_request("#{CONFIG[:category]}/test-object-simple2.json") do |response|
         response.code.must_equal 404
