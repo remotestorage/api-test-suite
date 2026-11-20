@@ -3,6 +3,8 @@ require 'bundler'
 Bundler.require
 require 'cgi'
 require 'yaml'
+require 'time'
+require_relative 'draft_profile'
 
 require 'minitest/spec'
 require 'minitest/autorun'
@@ -31,6 +33,33 @@ rescue Errno::ENOENT
   puts "Config file missing!\n\r".red
   puts "Please copy config.yml.example to config.yml and enter valid data.\n\r"
   exit 1
+end
+
+# Discovery is an unauthenticated request to the configured identity provider.
+# Never send a storage token here or use a discovered URL to redirect test writes.
+STORAGE_LINK = if CONFIG[:webfinger_url]
+  response = RestClient.get(CONFIG[:webfinger_url], accept: 'application/jrd+json')
+  DraftProfile.storage_link(JSON.parse(response.body), CONFIG.fetch(:storage_base_url))
+end
+DRAFT = DraftProfile.select_version(CONFIG[:draft_version], STORAGE_LINK)
+puts "Testing remoteStorage draft %02d" % DRAFT if DRAFT
+
+def check_cache_headers(response, public_path: false)
+  if DRAFT && DRAFT < 6
+    response.headers[:expires].must_equal '0'
+  else
+    directives = response.headers[:cache_control].to_s.downcase.split(',').map(&:strip)
+    directives.must_include 'no-cache'
+    directives.must_include 'public' if public_path && DRAFT && DRAFT >= 26
+  end
+end
+
+def check_denied(response, expected)
+  if DRAFT && DRAFT >= 6
+    response.code.must_equal expected
+  else
+    [401, 403].must_include response.code
+  end
 end
 
 def default_headers

@@ -1,3 +1,8 @@
+# Target remoteStorage Internet-Draft (03 through 27).
+draft_version: 27
+# Optional complete WebFinger URL, including the resource query parameter.
+# Use only webfinger_url to select the advertised draft automatically.
+# webfinger_url: https://example.org/.well-known/webfinger?resource=acct%3Atest%40example.org
 # Storage base URL for RS test user (as it appears in Webfinger response)
 storage_base_url: https://storage.5apps.com/rs-test
 # Storage base URL for a different user (with no access for RS user)

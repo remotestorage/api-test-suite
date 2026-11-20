@@ -1,0 +1,37 @@
+name: Test the API suite
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  rsilo:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    services:
+      storage:
+        image: ghcr.io/jonocodes/rsilo:0.3.0
+        ports:
+          - 8787:8787
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler: '2.4.22'
+          bundler-cache: true
+      - run: bundle exec ruby test/draft_profile_test.rb
+      - name: Exercise the advertised storage API
+        env:
+          STORAGE_CONTAINER: ${{ job.services.storage.id }}
+        run: |
+          curl --fail --silent --retry 10 --retry-connrefused http://localhost:8787/health
+          token() { docker exec "$STORAGE_CONTAINER" bun src/scripts/dev-token.ts alice "$1" | tail -n 1; }
+          cat > config.yml <<EOF
+          webfinger_url: http://localhost:8787/.well-known/webfinger?resource=acct%3Aalice%40localhost
+          storage_base_url: http://localhost:8787/storage/alice
+          storage_base_url_other: http://localhost:8787/storage/bob
+          category: api-test
+          token: "$(token api-test:rw)"
+          read_only_token: "$(token api-test:r)"
+          root_token: "$(token '*:rw')"
+          EOF
+          bundle exec rake test
