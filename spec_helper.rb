@@ -45,13 +45,9 @@ DRAFT = DraftProfile.select_version(CONFIG[:draft_version], STORAGE_LINK)
 puts "Testing remoteStorage draft %02d" % DRAFT if DRAFT
 
 def check_cache_headers(response, public_path: false)
-  if DRAFT && DRAFT < 6
-    response.headers[:expires].must_equal '0'
-  else
-    directives = response.headers[:cache_control].to_s.downcase.split(',').map(&:strip)
-    directives.must_include 'no-cache'
-    directives.must_include 'public' if public_path && DRAFT && DRAFT >= 26
-  end
+  DraftProfile.validate_cache!(DRAFT, response.headers, public_path: public_path)
+rescue ArgumentError => e
+  flunk e.message
 end
 
 def check_denied(response, expected)

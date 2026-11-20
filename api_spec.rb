@@ -295,7 +295,14 @@ describe "Requests" do
 
     it "works" do
       @res.code.must_equal 200
-      @res.headers[:content_encoding].must_be_nil
+      # RFC 9110 section 8.4 discourages an explicit identity coding. It
+      # still represents the same octets; remoteStorage requires a strong ETag.
+      encoding = @res.headers[:content_encoding]
+      [nil, "identity"].must_include(encoding && encoding.downcase)
+      plain = do_get_request("#{CONFIG[:category]}/test-object-simple.json", accept_encoding: "identity")
+      plain.code.must_equal 200
+      @res.headers[:etag].must_equal plain.headers[:etag]
+      @res.body.must_equal plain.body
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
@@ -767,6 +774,8 @@ describe "WebFinger" do
   it "advertises both OAuth endpoints and S256 when it offers PKCE" do
     skip "PKCE discovery starts at draft 26" unless DRAFT && DRAFT >= 26
     skip "Set webfinger_url to check discovery" unless STORAGE_LINK
-    DraftProfile.validate_pkce!(STORAGE_LINK.fetch('properties'))
+    skip "Server does not advertise optional PKCE" unless DraftProfile.validate_pkce!(STORAGE_LINK.fetch('properties'))
+  rescue ArgumentError => e
+    flunk e.message
   end
 end

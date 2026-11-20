@@ -33,9 +33,26 @@ module DraftProfile
     target || advertised
   end
 
+  def self.validate_cache!(draft, headers, public_path: false)
+    if draft && draft < 6
+      raise ArgumentError, "Expected Expires: 0, got #{headers[:expires].inspect}" unless headers[:expires] == '0'
+      return
+    end
+    required = ['no-cache']
+    required << 'public' if public_path && draft && draft >= 26
+    actual = headers[:cache_control].to_s.downcase.split(',').map(&:strip)
+    if required.include?('public') && actual.include?('private')
+      raise ArgumentError, 'Public Cache-Control also declares private'
+    end
+    missing = required - actual
+    unless missing.empty?
+      raise ArgumentError, "Missing Cache-Control #{missing.join(', ')} in #{headers[:cache_control].inspect}"
+    end
+  end
+
   # No extension properties means an implicit-only server, which is valid.
   def self.validate_pkce!(properties)
-    return unless [AUTHORIZATION, TOKEN, PKCE].any? { |key| properties.key?(key) }
+    return false unless [AUTHORIZATION, TOKEN, PKCE].any? { |key| properties.key?(key) }
     [AUTHORIZATION, TOKEN].each do |key|
       raise ArgumentError, "Expected an absolute endpoint URL for #{key}" unless endpoint?(properties[key])
     end
@@ -43,6 +60,7 @@ module DraftProfile
     unless methods.is_a?(String) && methods.split(/[\s,]+/).include?('S256')
       raise ArgumentError, "Expected #{PKCE} to advertise S256"
     end
+    true
   end
 
   def self.endpoint?(value)

@@ -30,9 +30,24 @@ class DraftProfileTest < Minitest::Test
     assert_raises(ArgumentError) { DraftProfile.storage_link({'links' => [other]}, ROOT) }
   end
 
+  def test_cache_rules_at_each_draft_boundary
+    DraftProfile.validate_cache!(5, { expires: '0' })
+    assert_raises(ArgumentError) { DraftProfile.validate_cache!(5, { cache_control: 'no-cache' }) }
+    assert_raises(ArgumentError) { DraftProfile.validate_cache!(6, { expires: '0' }) }
+    DraftProfile.validate_cache!(6, { cache_control: 'no-cache' })
+    DraftProfile.validate_cache!(25, { cache_control: 'no-cache' }, public_path: true)
+    [26, 27].each do |draft|
+      DraftProfile.validate_cache!(draft, { cache_control: 'no-cache' })
+      DraftProfile.validate_cache!(draft, { cache_control: 'PUBLIC, no-cache' }, public_path: true)
+      ['no-cache', 'public', 'private, no-cacheable', 'public, private, no-cache'].each do |incomplete|
+        assert_raises(ArgumentError) { DraftProfile.validate_cache!(draft, { cache_control: incomplete }, public_path: true) }
+      end
+    end
+  end
+
   def test_optional_pkce_advertisement
-    DraftProfile.validate_pkce!({})
-    DraftProfile.validate_pkce!(PROPS)
+    refute DraftProfile.validate_pkce!({})
+    assert DraftProfile.validate_pkce!(PROPS)
     DraftProfile.validate_pkce!(PROPS.merge(DraftProfile::PKCE => 'plain S256'))
     PROPS.each_key do |key|
       assert_raises(ArgumentError) { DraftProfile.validate_pkce!(PROPS.reject { |k, _| k == key }) }
