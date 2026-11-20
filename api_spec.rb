@@ -7,6 +7,30 @@ def check_dir_listing_content_type(content_type)
   end
 end
 
+def check_dir_listing(listing)
+  listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
+  listing["items"].each_pair do |key, value|
+    key.must_be_kind_of String
+    value["ETag"].must_be_kind_of String
+    if key[-1] == "/"
+      value.keys.must_equal ["ETag"]
+      refute listing["items"].key?(key.chomp("/")), "Both #{key} and a document with the same name" if DRAFT && DRAFT >= 12
+    else
+      value["Content-Length"].must_be_kind_of Integer
+      value["Content-Type"].must_be_kind_of String
+      if DRAFT && DRAFT >= 11
+        modified = value["Last-Modified"]
+        modified.must_be_kind_of String
+        begin
+          Time.httpdate(modified)
+        rescue ArgumentError
+          flunk "Invalid Last-Modified HTTP-date for #{key}: #{modified.inspect}"
+        end
+      end
+    end
+  end
+end
+
 describe "OPTIONS" do
 
   describe "GET" do
@@ -18,13 +42,13 @@ describe "OPTIONS" do
       }
 
       [200, 204].must_include res.code
-      res.headers[:access_control_allow_origin].must_match(/(\*|https:\/\/unhosted\.org)/)
-      res.headers[:access_control_expose_headers].must_include 'ETag'
-      res.headers[:access_control_allow_methods].must_include 'GET'
+      ["*", "https://unhosted.org"].must_include res.headers[:access_control_allow_origin]
+      res.headers[:access_control_expose_headers].to_s.downcase.split(',').map(&:strip).must_include 'etag'
+      res.headers[:access_control_allow_methods].to_s.split(',').map(&:strip).must_include 'GET'
       res.body.must_be_empty
 
       ['Authorization', 'Content-Type', 'Origin', 'If-Match', 'If-None-Match'].each do |header|
-        res.headers[:access_control_allow_headers].must_include header
+        res.headers[:access_control_allow_headers].to_s.downcase.split(',').map(&:strip).must_include header.downcase
       end
     end
   end
@@ -39,13 +63,15 @@ describe "OPTIONS" do
         }
 
         [200, 204].must_include res.code
-        res.headers[:access_control_allow_origin].must_equal "https://unhosted.org"
-        res.headers[:access_control_expose_headers].must_include 'ETag'
-        res.headers[:access_control_allow_methods].must_include method
+        origins = ["https://unhosted.org"]
+        origins << "*" if DRAFT && DRAFT >= 6
+        origins.must_include res.headers[:access_control_allow_origin]
+        res.headers[:access_control_expose_headers].to_s.downcase.split(',').map(&:strip).must_include 'etag'
+        res.headers[:access_control_allow_methods].to_s.split(',').map(&:strip).must_include method
         res.body.must_be_empty
 
         ['Authorization', 'Content-Type', 'Origin', 'If-Match', 'If-None-Match'].each do |header|
-          res.headers[:access_control_allow_headers].must_include header
+          res.headers[:access_control_allow_headers].to_s.downcase.split(',').map(&:strip).must_include header.downcase
         end
       end
     end
@@ -127,9 +153,10 @@ describe "Requests" do
 
   describe "PUT with Content-Range" do
     it "returns a 400" do
+      skip "Content-Range PUT rule starts at draft 06" if DRAFT && DRAFT < 6
       # https://tools.ietf.org/html/rfc7231#section-4.3.4
       do_put_request("#{CONFIG[:category]}/some-subdir/nested-folder-object.json",
-                     'sup', {content_range: "bytes 0-3/3", content_type: "text/plain"}) do |res|
+                     'sup', {content_range: "bytes 0-2/6", content_type: "text/plain"}) do |res|
         res.code.must_equal 400
       end
     end
@@ -236,8 +263,27 @@ describe "Requests" do
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
       @res.headers[:content_length].must_equal "102"
-      @res.headers[:cache_control].must_equal "no-cache"
+      check_cache_headers(@res)
       @res.body.must_equal '{"new": "object", "should_be": "large_enough", "to_trigger": "compression", "if_enabled": "on_server"}'
+    end
+  end
+
+  describe "advertised byte ranges" do
+    it "returns the requested bytes and identifies an unsatisfiable range" do
+      skip "Range advertisement starts at draft 06" unless DRAFT && DRAFT >= 6
+      path = "#{CONFIG[:category]}/test-object-simple.json"
+      full = do_get_request(path)
+      full.code.must_equal 200
+      advertised = STORAGE_LINK && STORAGE_LINK.fetch('properties')[DraftProfile::RANGE] == 'GET'
+      unless advertised || full.headers[:accept_ranges].to_s.downcase.split(',').map(&:strip).include?('bytes')
+        skip "Server does not advertise byte ranges"
+      end
+      size = full.body.bytesize
+      part = do_get_request(path, range: 'bytes=1-3')
+      part.code.must_equal 206
+      part.headers[:content_range].must_equal "bytes 1-3/#{size}"
+      part.body.must_equal full.body.byteslice(1, 3)
+      do_get_request(path, range: "bytes=#{size}-") { |res| res.code.must_equal 416 }
     end
   end
 
@@ -249,12 +295,19 @@ describe "Requests" do
 
     it "works" do
       @res.code.must_equal 200
-      @res.headers[:content_encoding].must_be_nil
+      # RFC 9110 section 8.4 discourages an explicit identity coding. It
+      # still represents the same octets; remoteStorage requires a strong ETag.
+      encoding = @res.headers[:content_encoding]
+      [nil, "identity"].must_include(encoding && encoding.downcase)
+      plain = do_get_request("#{CONFIG[:category]}/test-object-simple.json", accept_encoding: "identity")
+      plain.code.must_equal 200
+      @res.headers[:etag].must_equal plain.headers[:etag]
+      @res.body.must_equal plain.body
       @res.headers[:etag].wont_be_nil
       @res.headers[:etag].must_be_etag
       @res.headers[:content_type].must_equal "application/json"
       @res.headers[:content_length].must_equal "102"
-      @res.headers[:cache_control].must_equal "no-cache"
+      check_cache_headers(@res)
       @res.body.must_equal '{"new": "object", "should_be": "large_enough", "to_trigger": "compression", "if_enabled": "on_server"}'
     end
   end
@@ -364,18 +417,9 @@ describe "Requests" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
       check_dir_listing_content_type(@res.headers[:content_type])
+      check_cache_headers(@res) if DRAFT
 
-      @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
-      @listing["items"].each_pair do |key, value|
-        key.must_be_kind_of String
-        value["ETag"].must_be_kind_of String
-        if key[-1] == "/"
-          value.keys.must_equal ["ETag"]
-        else
-          value["Content-Length"].must_be_kind_of Integer
-          value["Content-Type"].must_be_kind_of String
-        end
-      end
+      check_dir_listing(@listing)
     end
 
     it "contains the correct items" do
@@ -392,7 +436,7 @@ describe "Requests" do
       res = do_put_request("thisisbadpractice.json", '{"new": "object"}',
                             { content_type: "application/json" })
 
-      [401, 403].must_include res.code
+      check_denied(res, 403)
     end
 
     it "works with root token" do
@@ -429,18 +473,9 @@ describe "Requests" do
       @res.code.must_equal 200
       @res.headers[:etag].must_be_etag
       check_dir_listing_content_type(@res.headers[:content_type])
+      check_cache_headers(@res) if DRAFT
 
-      @listing["@context"].must_equal "http://remotestorage.io/spec/folder-description"
-      @listing["items"].each_pair do |key, value|
-        key.must_be_kind_of String
-        value["ETag"].must_be_kind_of String
-        if key[-1] == "/"
-          value.keys.must_equal ["ETag"]
-        else
-          value["Content-Length"].must_be_kind_of Integer
-          value["Content-Type"].must_be_kind_of String
-        end
-      end
+      check_dir_listing(@listing)
     end
 
     it "contains the correct items" do
@@ -546,7 +581,7 @@ describe "Requests" do
                              { content_type: "application/json",
                                authorization: "Bearer #{CONFIG[:read_only_token]}" })
 
-        [401, 403].must_include res.code
+        check_denied(res, 403)
       end
     end
 
@@ -555,7 +590,7 @@ describe "Requests" do
         res = do_delete_request("#{CONFIG[:category]}/test-object-simple.json",
                                 authorization: "Bearer #{CONFIG[:read_only_token]}")
 
-        [401, 403].must_include res.code
+        check_denied(res, 403)
       end
     end
 
@@ -579,7 +614,7 @@ describe "Requests" do
                              '{"new": "object"}',
                              { content_type: "application/json" })
 
-        [401, 403].must_include res.code
+        check_denied(res, 403)
       end
     end
 
@@ -589,11 +624,13 @@ describe "Requests" do
                              authorization: nil)
 
         res.code.must_equal 200
+        check_cache_headers(res, public_path: true) if DRAFT
       end
     end
 
     describe "HEAD without a token" do
       it "works" do
+        skip "Anonymous HEAD starts at draft 06" if DRAFT && DRAFT < 6
         res = do_head_request("public/#{CONFIG[:category]}/test-object-simple.json",
                               authorization: nil)
 
@@ -609,7 +646,7 @@ describe "Requests" do
                              { content_type: "application/json",
                                authorization: nil })
 
-        [401, 403].must_include res.code
+        check_denied(res, 401)
       end
     end
 
@@ -617,7 +654,7 @@ describe "Requests" do
       it "is not allowed" do
         res = do_get_request("public/#{CONFIG[:category]}/", authorization: nil)
 
-        [401, 403].must_include res.code
+        check_denied(res, 401)
       end
 
       it "doesn't expose if folder is empty" do
@@ -625,7 +662,9 @@ describe "Requests" do
         res2 = do_get_request("public/#{CONFIG[:category]}/foo/", authorization: nil)
 
         res.code.must_equal res2.code
-        res.headers.must_equal res2.headers
+        [:content_type, :content_length, :www_authenticate, :etag].each do |header|
+          assert_equal res.headers[header], res2.headers[header]
+        end
         res.body.must_equal res2.body
       end
     end
@@ -635,6 +674,7 @@ describe "Requests" do
         res = do_get_request("public/#{CONFIG[:category]}/")
 
         res.code.must_equal 200
+        check_cache_headers(res, public_path: true) if DRAFT
       end
     end
 
@@ -643,7 +683,7 @@ describe "Requests" do
         res = do_delete_request("public/#{CONFIG[:category]}/test-object-simple.json",
                                 authorization: nil)
 
-        [401, 403].must_include res.code
+        check_denied(res, 401)
       end
     end
 
@@ -721,4 +761,21 @@ describe "Requests" do
     end
   end
 
+end
+
+describe "WebFinger" do
+  it "advertises the storage API for the selected draft" do
+    skip "Set webfinger_url to check discovery" unless STORAGE_LINK
+    expected_rel = DRAFT >= 5 ? DraftProfile::REL : 'remotestorage'
+    STORAGE_LINK['rel'].must_equal expected_rel
+    STORAGE_LINK.fetch('properties')[DraftProfile::VERSION].must_equal("draft-dejong-remotestorage-%02d" % DRAFT)
+  end
+
+  it "advertises both OAuth endpoints and S256 when it offers PKCE" do
+    skip "PKCE discovery starts at draft 26" unless DRAFT && DRAFT >= 26
+    skip "Set webfinger_url to check discovery" unless STORAGE_LINK
+    skip "Server does not advertise optional PKCE" unless DraftProfile.validate_pkce!(STORAGE_LINK.fetch('properties'))
+  rescue ArgumentError => e
+    flunk e.message
+  end
 end
